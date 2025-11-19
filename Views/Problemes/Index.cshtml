@@ -1,0 +1,63 @@
+﻿@model IEnumerable<ProblemSolvingPlatform.Models.Probleme>
+
+@{
+    ViewData["Title"] = "Problems List";
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="fw-bold">Problems</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create New
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.Title)</th>
+                        <th>@Html.DisplayNameFor(model => model.Descr)</th>
+                        <th>@Html.DisplayNameFor(model => model.Difficulte)</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.Title)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Descr)</td>
+                            <td>
+                                <span class="badge
+                                        @(item.Difficulte == "Easy" ? "bg-success" :
+                                                                            item.Difficulte == "Medium" ? "bg-warning text-dark" :
+                                                                            "bg-danger")">
+                                @item.Difficulte
+                            </span>
+                        </td>
+                        <td class="text-center">
+
+                                <a asp-action="Details" asp-route-id="@item.ProbId" class="btn btn-sm btn-info me-1 text-white">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+
+                                <a asp-action="Edit" asp-route-id="@item.ProbId" class="btn btn-sm btn-warning me-1">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <a asp-action="Delete" asp-route-id="@item.ProbId" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+
+                            </td>
+                        </tr>
+                                        }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
