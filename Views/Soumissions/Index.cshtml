@@ -39,9 +39,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Langage)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.UserId)
-            </td>
+           
             <td>
                 <a asp-action="Edit" asp-route-id="@item.SoumissionId">Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.SoumissionId">Details</a> |

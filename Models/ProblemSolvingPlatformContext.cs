@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace ProblemSolvingPlatform.Models;
 
-public partial class ProblemSolvingPlatformContext : DbContext
+public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public ProblemSolvingPlatformContext()
     {
@@ -19,7 +21,6 @@ public partial class ProblemSolvingPlatformContext : DbContext
     public virtual DbSet<Commentaire> Commentaires { get; set; }
     public virtual DbSet<Probleme> Problemes { get; set; }
     public virtual DbSet<Soumission> Soumissions { get; set; }
-    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,18 +93,16 @@ public partial class ProblemSolvingPlatformContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C9A3C4F25");
+            entity.HasKey(e => e.Id).HasName("PK__Users__1788CC4C9A3C4F25");
             entity.HasIndex(e => e.Email, "UQ__Users__A9D1053420F85CE3").IsUnique();
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FirstName).HasMaxLength(50);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastName).HasMaxLength(50);
-            entity.Property(e => e.PasswordHash).HasMaxLength(255);
-            entity.Property(e => e.ProfilePicture).HasMaxLength(255);
+            entity.Property(e => e.UserName).HasMaxLength(50);
             entity.Property(e => e.RegistrationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Username).HasMaxLength(50);
         });
 
         OnModelCreatingPartial(modelBuilder);

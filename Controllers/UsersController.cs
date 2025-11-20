@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProblemSolvingPlatform.Models;
 
@@ -12,16 +13,19 @@ namespace ProblemSolvingPlatform.Controllers
     public class UsersController : Controller
     {
         private readonly ProblemSolvingPlatformContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public UsersController(ProblemSolvingPlatformContext context)
+        public UsersController(ProblemSolvingPlatformContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            var users = await _userManager.Users.ToListAsync();
+            return View(users);
         }
 
         // GET: Users/Details/5
@@ -32,8 +36,7 @@ namespace ProblemSolvingPlatform.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(m => m.UserId == id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return NotFound();
@@ -53,13 +56,24 @@ namespace ProblemSolvingPlatform.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,Username,Email,PasswordHash,FirstName,LastName,RegistrationDate,ProfilePicture,Role,IsActive")] User user)
+        public async Task<IActionResult> Create([Bind("Email,FirstName,LastName,ProfilePicture,Role,IsActive")] User user, string password)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                user.UserName = user.Email;
+                user.RegistrationDate = DateTime.Now;
+                
+                var result = await _userManager.CreateAsync(user, password);
+                
+                if (result.Succeeded)
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+                
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
             }
             return View(user);
         }
@@ -72,7 +86,7 @@ namespace ProblemSolvingPlatform.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return NotFound();
@@ -85,9 +99,9 @@ namespace ProblemSolvingPlatform.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserId,Username,Email,PasswordHash,FirstName,LastName,RegistrationDate,ProfilePicture,Role,IsActive")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Email,FirstName,LastName,ProfilePicture,Role,IsActive,RegistrationDate")] User user)
         {
-            if (id != user.UserId)
+            if (id != user.Id)
             {
                 return NotFound();
             }
@@ -96,12 +110,37 @@ namespace ProblemSolvingPlatform.Controllers
             {
                 try
                 {
-                    _context.Update(user);
-                    await _context.SaveChangesAsync();
+                    var existingUser = await _userManager.FindByIdAsync(id.ToString());
+                    if (existingUser == null)
+                    {
+                        return NotFound();
+                    }
+
+                    existingUser.Email = user.Email;
+                    existingUser.UserName = user.Email;
+                    existingUser.FirstName = user.FirstName;
+                    existingUser.LastName = user.LastName;
+                    existingUser.ProfilePicture = user.ProfilePicture;
+                    existingUser.Role = user.Role;
+                    existingUser.IsActive = user.IsActive;
+
+                    var result = await _userManager.UpdateAsync(existingUser);
+                    
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in result.Errors)
+                        {
+                            ModelState.AddModelError("", error.Description);
+                        }
+                        return View(user);
+                    }
+
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.UserId))
+                    var userExists = await _userManager.FindByIdAsync(id.ToString()) != null;
+                    if (!userExists)
                     {
                         return NotFound();
                     }
@@ -110,7 +149,6 @@ namespace ProblemSolvingPlatform.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(user);
         }
@@ -123,8 +161,7 @@ namespace ProblemSolvingPlatform.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(m => m.UserId == id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)
             {
                 return NotFound();
@@ -138,19 +175,26 @@ namespace ProblemSolvingPlatform.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user != null)
             {
-                _context.Users.Remove(user);
+                var result = await _userManager.DeleteAsync(user);
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View(user);
+                }
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool UserExists(int id)
+        private async Task<bool> UserExists(int id)
         {
-            return _context.Users.Any(e => e.UserId == id);
+            return await _userManager.FindByIdAsync(id.ToString()) != null;
         }
     }
 }

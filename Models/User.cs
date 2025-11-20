@@ -1,18 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
 namespace ProblemSolvingPlatform.Models;
 
-public partial class User
+public partial class User : IdentityUser<int>
 {
-    public int UserId { get; set; }
-
-    public string Username { get; set; } = null!;
-
-    public string Email { get; set; } = null!;
-
-    public string PasswordHash { get; set; } = null!;
-
     public string? FirstName { get; set; }
 
     public string? LastName { get; set; }
