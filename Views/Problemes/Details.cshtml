@@ -4,60 +4,71 @@
     ViewData["Title"] = "Problem Details";
 }
 
-<div class="container mt-4">
+<div class="container mt-4" style="width:max">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="fw-bold">Problem Details</h2>
-
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-
-            <dl class="row mb-0">
-
-                <dt class="col-sm-3 fw-semibold text-muted">
-                    @Html.DisplayNameFor(model => model.Title)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.Title)
-                </dd>
-
-                <dt class="col-sm-3 fw-semibold text-muted">
-                    @Html.DisplayNameFor(model => model.Descr)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.Descr)
-                </dd>
-
-                <dt class="col-sm-3 fw-semibold text-muted">
-                    @Html.DisplayNameFor(model => model.Difficulte)
-                </dt>
-                <dd class="col-sm-9">
-                    <span class="badge
-                        @(Model.Difficulte == "Easy" ? "bg-success" :
-                                                    Model.Difficulte == "Medium" ? "bg-warning text-dark" :
-                                                    "bg-danger")">
-                        @Model.Difficulte
-                    </span>
-                </dd>
-
-            </dl>
-
+        <div class="mt-3">
+            <a asp-action="Edit" asp-route-id="@Model?.ProbId" class="btn btn-warning me-2">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                Back to List
+            </a>
         </div>
     </div>
 
-    <div class="mt-3">
-        <a asp-action="Edit" asp-route-id="@Model?.ProbId" class="btn btn-warning me-2">
-            <i class="bi bi-pencil-square"></i> Edit
-        </a>
+    <div class="row g-4">
+        <!-- Left Section: Problem Details -->
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="height: 600px; width:630px;">
+                <div class="card-body">
 
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            Back to List
-        </a>
+                    <dl class="row mb-0">
+
+                        <dt class="col-sm-4 fw-semibold text-muted">
+                            @Html.DisplayNameFor(model => model.Title)
+                        </dt>
+                        <dd class="col-sm-8">
+                            @Html.DisplayFor(model => model.Title)
+                        </dd>
+
+                        <dt class="col-sm-4 fw-semibold text-muted">
+                            @Html.DisplayNameFor(model => model.Descr)
+                        </dt>
+                        <dd class="col-sm-8">
+                            @Html.DisplayFor(model => model.Descr)
+                        </dd>
+
+                        <dt class="col-sm-4 fw-semibold text-muted">
+                            @Html.DisplayNameFor(model => model.Difficulte)
+                        </dt>
+                        <dd class="col-sm-8">
+                            <span class="badge
+                                @(Model.Difficulte == "Easy" ? "bg-success" :
+                                                                                            Model.Difficulte == "Medium" ? "bg-warning text-dark" :
+                                                                                            "bg-danger")">
+                                @Model.Difficulte
+                            </span>
+                        </dd>
+
+                    </dl>
+
+                </div>
+            </div>
+
+           
+        </div>
+
+        <!-- Right Section: Compiler / Editor Placeholder -->
+        <div class="col-md-6">
+            <div class="card shadow-sm" style="height: 600px;  width:630px;">
+                <div class="text-center text-muted">
+                    <h5>Code Editor / Compiler goes here</h5>
+                </div>
+            </div>
+        </div>
+
     </div>
 
 </div>

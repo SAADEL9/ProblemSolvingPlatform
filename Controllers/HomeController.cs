@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProblemSolvingPlatform.Models;
 
 namespace ProblemSolvingPlatform.Controllers
@@ -7,14 +8,44 @@ namespace ProblemSolvingPlatform.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ProblemSolvingPlatformContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ProblemSolvingPlatformContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Get latest 5 problems
+            var latestProblems = await _context.Problemes
+                .OrderByDescending(p => p.ProbId)
+                .Take(5)
+                .ToListAsync();
+
+            // Get problem counts by difficulty
+            var easyCount = await _context.Problemes.Where(p => p.Difficulte == "Easy").CountAsync();
+            var mediumCount = await _context.Problemes.Where(p => p.Difficulte == "Medium").CountAsync();
+            var hardCount = await _context.Problemes.Where(p => p.Difficulte == "Hard").CountAsync();
+
+            // Prepare difficulty stats
+            var difficultyStats = new Dictionary<string, int>
+            {
+                { "Easy", easyCount },
+                { "Medium", mediumCount },
+                { "Hard", hardCount }
+            };
+
+            // Admin stats
+            var totalUsers = await _context.Users.CountAsync();
+            var totalProblems = await _context.Problemes.CountAsync();
+
+            ViewData["LatestProblems"] = latestProblems;
+            ViewData["DifficultyStats"] = difficultyStats;
+            ViewData["TotalUsers"] = totalUsers;
+            ViewData["TotalProblems"] = totalProblems;
+
             return View();
         }
 

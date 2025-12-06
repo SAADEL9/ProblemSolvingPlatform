@@ -1,8 +1,298 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home - Problem Solving Platform";
+    var latestProblems = ViewData["LatestProblems"] as List<Probleme> ?? new List<Probleme>();
+    var difficultyStats = ViewData["DifficultyStats"] as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var totalUsers = (int?)ViewData["TotalUsers"] ?? 0;
+    var totalProblems = (int?)ViewData["TotalProblems"] ?? 0;
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="text-center ">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero-section py-5 text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; margin-bottom: 40px;">
+    <div class="container">
+        <h1 class="display-3 fw-bold mb-3 text-white">Practice Coding. Learn Algorithms. Compete with Others.</h1>
+        <p class="lead text-white mb-4">Master data structures and algorithms through interactive coding challenges</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="@Url.Action("Index", "Problemes")" class="btn btn-light btn-lg px-5 fw-bold">
+                <i class="bi bi-play-circle"></i> Start Solving
+            </a>
+            
+        </div>
+    </div>
+</section>
+
+<!-- Problem Categories Section -->
+<section class="categories-section mb-5">
+    <div class="container">
+        <h2 class="mb-4 fw-bold text-white">
+            <i class="bi bi-diagram-3"></i> Practice by Difficulty
+        </h2>
+        <div class="row g-4">
+            @{
+                var difficulties = new[] { "Easy", "Medium", "Hard" };
+                var colors = new[] { "success", "warning", "danger" };
+                var icons = new[] { "cloud-check", "exclamation-triangle", "fire" };
+            }
+            @for (int i = 0; i < difficulties.Length; i++)
+            {
+                var difficulty = difficulties[i];
+                var count = difficultyStats.ContainsKey(difficulty) ? difficultyStats[difficulty] : 0;
+                var color = colors[i];
+                var icon = icons[i];
+
+                <div class="col-md-4 mb-3">
+                    <a href="@Url.Action("Index", "Problemes")?difficulty=@difficulty" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm transition-transform" style="background: #1a1a1a; cursor: pointer; transition: transform 0.3s ease;">
+                            <div class="card-body text-center py-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-@icon text-@color" style="font-size: 2.5rem;"></i>
+                                </div>
+                                <h5 class="card-title fw-bold text-white">@difficulty Problems</h5>
+                                <p class="card-text text-muted mb-2">Master @difficulty level challenges</p>
+                                <h3 class="text-@color fw-bold">@count</h3>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Latest Problems Section -->
+<section class="latest-problems mb-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-white mb-0">
+                <i class="bi bi-lightning-charge"></i> Latest Problems
+            </h2>
+            <a href="@Url.Action("Index", "Problemes")" class="btn btn-outline-primary btn-sm">
+                View All
+            </a>
+        </div>
+
+        @if (latestProblems.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle border-0">
+                    <thead>
+                        <tr class="border-bottom border-secondary">
+                            <th class="text-white">Problem</th>
+                            <th class="text-white">Difficulty</th>
+                            <th class="text-white">Description</th>
+                            <th class="text-white text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var problem in latestProblems)
+                        {
+                            var difficultyColor = problem.Difficulte switch
+                            {
+                                "Easy" => "success",
+                                "Medium" => "warning",
+                                "Hard" => "danger",
+                                _ => "secondary"
+                            };
+
+                            <tr>
+                                <td class="text-white fw-semibold">
+                                    <i class="bi bi-bookmark"></i> @problem.Title
+                                </td>
+                                <td>
+                                    <span class="badge bg-@difficultyColor">@problem.Difficulte</span>
+                                </td>
+                                <td class="text-light text-truncate" style="max-width: 400px;">
+                                    @(problem.Descr.Length > 100 ? problem.Descr.Substring(0, 100) + "..." : problem.Descr)
+                                </td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("Details", "Problemes", new { id = problem.ProbId })" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-play-fill"></i> Solve Now
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> No problems available yet. Check back soon!
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Admin Dashboard Section -->
+@if (isAdmin)
+{
+    <section class="admin-dashboard mb-5">
+        <div class="container">
+            <h2 class="fw-bold text-white mb-4">
+                <i class="bi bi-speedometer2"></i> Admin Dashboard
+            </h2>
+
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: #1a1a1a;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Total Users</p>
+                                    <h3 class="text-primary fw-bold">@totalUsers</h3>
+                                </div>
+                                <i class="bi bi-people-fill text-primary" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: #1a1a1a;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Total Problems</p>
+                                    <h3 class="text-success fw-bold">@totalProblems</h3>
+                                </div>
+                                <i class="bi bi-diagram-3-fill text-success" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: #1a1a1a;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Easy Problems</p>
+                                    <h3 class="text-info fw-bold">@(difficultyStats.ContainsKey("Easy") ? difficultyStats["Easy"] : 0)</h3>
+                                </div>
+                                <i class="bi bi-cloud-check-fill text-info" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: #1a1a1a;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted small mb-1">Medium Problems</p>
+                                    <h3 class="text-warning fw-bold">@(difficultyStats.ContainsKey("Medium") ? difficultyStats["Medium"] : 0)</h3>
+                                </div>
+                                <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <a href="@Url.Action("Create", "Problemes")" class="btn btn-success w-100 py-3">
+                        <i class="bi bi-plus-circle"></i> Add New Problem
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <a href="@Url.Action("Index", "Users")" class="btn btn-info w-100 py-3">
+                        <i class="bi bi-people"></i> Manage Users
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Features Section -->
+<section class="features-section py-5 mb-5" style="background: #1a1a1a; border-radius: 10px;">
+    <div class="container">
+        <h2 class="text-center fw-bold text-white mb-5">Why Choose Us?</h2>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-lightning-charge-fill text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold text-white">Diverse Problems</h5>
+                <p class="text-muted">Solve problems across multiple difficulty levels and topics</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-trophy-fill text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold text-white">Compete & Rank</h5>
+                <p class="text-muted">Join contests and climb the global leaderboard</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-chat-dots-fill text-info" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold text-white">Community Driven</h5>
+                <p class="text-muted">Share solutions and learn from other developers</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+@if (!User.Identity.IsAuthenticated)
+{
+    <section class="cta-section py-5 text-center mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
+        <div class="container">
+            <h2 class="fw-bold text-white mb-3">Ready to Start Your Journey?</h2>
+            <p class="text-white mb-4">Join thousands of developers improving their coding skills</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="@Url.Page("/Account/Register", new { area = "Identity" })" class="btn btn-light btn-lg px-5 fw-bold">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </a>
+                <a href="@Url.Page("/Account/Login", new { area = "Identity" })" class="btn btn-outline-light btn-lg px-5 fw-bold">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Custom Styles -->
+<style>
+    .hero-section {
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.1) !important;
+    }
+
+    .btn-primary {
+        background-color: #667eea;
+        border-color: #667eea;
+    }
+
+    .btn-primary:hover {
+        background-color: #764ba2;
+        border-color: #764ba2;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    section {
+        scroll-behavior: smooth;
+    }
+</style>
