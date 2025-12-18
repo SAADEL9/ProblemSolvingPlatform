@@ -1,0 +1,443 @@
+@page
+@model ProblemSolvingPlatform.Areas.Identity.Pages.Account.ProfileModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container py-5">
+    <!-- Header with navigation tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="fw-bold">
+                    <i class="bi bi-person-circle"></i> My Profile
+                </h1>
+                <a asp-page="./EditProfile" class="btn btn-primary">
+                    <i class="bi bi-pencil-square"></i> Edit Profile
+                </a>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs border-bottom" role="tablist" style="border-color: #e0e0e0;">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                        <i class="bi bi-person"></i> Overview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="submissions-tab" data-bs-toggle="tab" data-bs-target="#submissions" type="button" role="tab">
+                        <i class="bi bi-file-earmark-code"></i> Submissions
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#statistics" type="button" role="tab">
+                        <i class="bi bi-graph-up"></i> Statistics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab">
+                        <i class="bi bi-gear"></i> Settings
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Overview Tab -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            <div class="row">
+                <!-- Profile Card -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center">
+                            <!-- Profile Picture -->
+                            <div class="mb-4">
+                                <div class="avatar-container" style="width: 150px; height: 150px; margin: 0 auto;">
+                                    @if (!string.IsNullOrEmpty(Model.CurrentUser.ProfilePicture))
+                                    {
+                                        <img src="@Model.CurrentUser.ProfilePicture" alt="Profile" class="rounded-circle w-100 h-100 object-fit-cover" style="object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="rounded-circle w-100 h-100 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="bi bi-person-fill" style="font-size: 4rem; color: white;"></i>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- User Info -->
+                            <h3 class="card-title fw-bold mb-1">
+                                @Model.CurrentUser.FirstName @Model.CurrentUser.LastName
+                            </h3>
+                            <p class="text-muted mb-3">
+                                <i class="bi bi-at"></i> @Model.CurrentUser.UserName
+                            </p>
+
+                            <!-- Badge for member status -->
+                            <div class="mb-3">
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle-fill"></i> Active Member
+                                </span>
+                            </div>
+
+                            <!-- Contact Info -->
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item px-0 py-2">
+                                    <small class="text-muted d-block mb-1">Email</small>
+                                    <small>@Model.CurrentUser.Email</small>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.CurrentUser.PhoneNumber))
+                                {
+                                    <div class="list-group-item px-0 py-2">
+                                        <small class="text-muted d-block mb-1">Phone</small>
+                                        <small>@Model.CurrentUser.PhoneNumber</small>
+                                    </div>
+                                }
+                                <div class="list-group-item px-0 py-2">
+                                    <small class="text-muted d-block mb-1">Member Since</small>
+                                    <small>@Model.CurrentUser.RegistrationDate.ToString("MMMM dd, yyyy")</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="col-lg-8">
+                    <div class="row g-3">
+                        <!-- Total Submissions -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <p class="card-text mb-1">Total Submissions</p>
+                                            <h3 class="mb-0">@Model.CurrentUser.Soumissions?.Count ?? 0</h3>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <i class="bi bi-file-earmark-code" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Comments -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <p class="card-text mb-1">Total Comments</p>
+                                            <h3 class="mb-0">@Model.CurrentUser.Commentaires?.Count ?? 0</h3>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <i class="bi bi-chat-dots" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ranking -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <p class="card-text mb-1">Current Rank</p>
+                                            <h3 class="mb-0">
+                                                @if (Model.CurrentUser.Classement != null)
+                                                {
+                                                    <text>#@Model.CurrentUser.Classement.Rang</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>--</text>
+                                                }
+                                            </h3>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <i class="bi bi-trophy" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Score -->
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-gradient" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div>
+                                            <p class="card-text mb-1">Score</p>
+                                            <h3 class="mb-0">
+                                                @if (Model.CurrentUser.Classement != null)
+                                                {
+                                                    <text>@Model.CurrentUser.Classement.Score</text>
+                                                }
+                                                else
+                                                {
+                                                    <text>0</text>
+                                                }
+                                            </h3>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <i class="bi bi-star-fill" style="font-size: 2.5rem; opacity: 0.5;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card shadow-sm border-0 mt-3">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history"></i> Recent Activity
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.CurrentUser.Soumissions != null && Model.CurrentUser.Soumissions.Any())
+                            {
+                                <div class="timeline">
+                                    @foreach (var submission in Model.CurrentUser.Soumissions.Take(5))
+                                    {
+                                        <div class="timeline-item mb-3 pb-3 border-bottom">
+                                            <div class="d-flex">
+                                                <div class="timeline-marker me-3" style="min-width: 40px;">
+                                                    <div class="rounded-circle w-100 h-100 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background-color: #667eea; color: white;">
+                                                        <i class="bi bi-file-earmark-code"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="mb-1 fw-semibold">Submitted code for @submission.Probleme</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle"></i> No submissions yet. Start solving problems!
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submissions Tab -->
+        <div class="tab-pane fade" id="submissions" role="tabpanel">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    @if (Model.CurrentUser.Soumissions != null && Model.CurrentUser.Soumissions.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="bi bi-file-earmark-code"></i> Problem</th>
+                                        <th><i class="bi bi-code"></i> Language</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var submission in Model.CurrentUser.Soumissions)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@submission.Probleme</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@submission.Langage</span>
+                                            </td>
+                                            <td>
+                                                <a href="#" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle"></i> You haven't submitted any code yet. Start by solving some problems!
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div class="tab-pane fade" id="statistics" role="tabpanel">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Activity Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                        <h4 class="text-primary mb-1">@(Model.CurrentUser.Soumissions?.Count ?? 0)</h4>
+                                        <small class="text-muted">Total Submissions</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                        <h4 class="text-success mb-1">@(Model.CurrentUser.Commentaires?.Count ?? 0)</h4>
+                                        <small class="text-muted">Comments Made</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0"><i class="bi bi-trophy"></i> Ranking</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                        <h4 class="text-warning mb-1">
+                                            @if (Model.CurrentUser.Classement != null)
+                                            {
+                                                <text>#@Model.CurrentUser.Classement.Rang</text>
+                                            }
+                                            else
+                                            {
+                                                <text>--</text>
+                                            }
+                                        </h4>
+                                        <small class="text-muted">Current Rank</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                        <h4 class="text-info mb-1">
+                                            @if (Model.CurrentUser.Classement != null)
+                                            {
+                                                <text>@Model.CurrentUser.Classement.Score</text>
+                                            }
+                                            else
+                                            {
+                                                <text>0</text>
+                                            }
+                                        </h4>
+                                        <small class="text-muted">Score</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div class="tab-pane fade" id="settings" role="tabpanel">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0"><i class="bi bi-shield-lock"></i> Account Security</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Manage your account security settings.</p>
+                            <a asp-page="./ChangePassword" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-key"></i> Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0"><i class="bi bi-gear"></i> Preferences</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">Customize your experience.</p>
+                            <button class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-sliders"></i> Edit Preferences
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        border-color: transparent;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #667eea;
+        border-color: transparent;
+        border-bottom-color: #667eea;
+        background-color: transparent;
+    }
+
+    .avatar-container {
+        overflow: hidden;
+        border: 4px solid #f0f0f0;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 0;
+    }
+
+    .timeline-marker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+</style>

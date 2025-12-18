@@ -52,13 +52,13 @@
 
                                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="profileDropdown">
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Profile">
                                             <i class="bi bi-person"></i> My Profile
                                         </a>
                                     </li>
 
                                     <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Settings">
+                                        <a class="dropdown-item" asp-area="Identity" asp-page="/Account/EditProfile">
                                             <i class="bi bi-gear"></i> Settings
                                         </a>
                                     </li>

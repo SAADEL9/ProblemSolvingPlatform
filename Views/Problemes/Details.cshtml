@@ -21,7 +21,7 @@
     <div class="row g-4">
         <!-- Left Section: Problem Details -->
         <div class="col-md-6">
-            <div class="card shadow-sm" style="height: 600px; width:630px;">
+            <div class="card shadow-sm" style="height: 600px; width:630px; overflow-y: auto;">
                 <div class="card-body">
 
                     <dl class="row mb-0">
@@ -60,11 +60,72 @@
            
         </div>
 
-        <!-- Right Section: Compiler / Editor Placeholder -->
+        <!-- Right Section: Code Editor with Piston API Integration -->
         <div class="col-md-6">
-            <div class="card shadow-sm" style="height: 600px;  width:630px;">
-                <div class="text-center text-muted">
-                    <h5>Code Editor / Compiler goes here</h5>
+            <div class="card shadow-sm" style="height: 600px; width:630px; display: flex; flex-direction: column;">
+                <div class="card-header bg-dark border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="bi bi-terminal"></i> Code Compiler (Piston API)
+                        </h5>
+                        <select id="languageSelect" class="form-select form-select-sm" style="width: 150px;">
+                            <option value="javascript">JavaScript</option>
+                            <option value="python3">Python</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                            <option value="go">Go</option>
+                            <option value="rust">Rust</option>
+                            <option value="php">PHP</option>
+                            <option value="ruby">Ruby</option>
+                            <option value="typescript">TypeScript</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body p-0 flex-grow-1 d-flex flex-column" style="min-height: 0;">
+                    <!-- Code Editor -->
+                    <div class="flex-grow-1" style="display: flex; flex-direction: column;">
+                        <textarea id="codeEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'Courier New', monospace; font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; resize: none;" placeholder="Write your code here...">print("Hello World!")</textarea>
+                    </div>
+
+                    <!-- Input/Output Tabs -->
+                    <ul class="nav nav-tabs" id="editorTabs" role="tablist" style="border-radius: 0;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button" role="tab">
+                                <i class="bi bi-arrow-down"></i> Input
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="output-tab" data-bs-toggle="tab" data-bs-target="#output-pane" type="button" role="tab">
+                                <i class="bi bi-arrow-up"></i> Output
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Input Pane -->
+                    <div class="tab-content" id="editorTabContent" style="flex-grow: 1; display: flex; flex-direction: column;">
+                        <div class="tab-pane fade show active" id="input-pane" role="tabpanel" style="flex-grow: 1; display: flex; flex-direction: column;">
+                            <textarea id="inputEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'Courier New', monospace; font-size: 13px; background-color: #1e1e1e; color: #d4d4d4; resize: none;" placeholder="Enter test input here..."></textarea>
+                        </div>
+
+                        <!-- Output Pane -->
+                        <div class="tab-pane fade" id="output-pane" role="tabpanel" style="flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                            <pre id="outputEditor" style="background-color: #1e1e1e; color: #d4d4d4; padding: 15px; margin: 0; border-radius: 0; font-family: 'Courier New', monospace; font-size: 13px; flex-grow: 1; overflow-y: auto;">Output will appear here...</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card-footer bg-dark border-top d-flex gap-2">
+                    <button id="runBtn" class="btn btn-success btn-sm flex-grow-1">
+                        <i class="bi bi-play-fill"></i> Run Code
+                    </button>
+                    <button id="clearBtn" class="btn btn-secondary btn-sm flex-grow-1">
+                        <i class="bi bi-arrow-clockwise"></i> Clear
+                    </button>
+                    <button id="submitBtn" class="btn btn-primary btn-sm flex-grow-1">
+                        <i class="bi bi-check-circle"></i> Submit
+                    </button>
                 </div>
             </div>
         </div>
@@ -72,3 +133,187 @@
     </div>
 
 </div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="spinner-border spinner-border-sm text-primary d-none" role="status" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;">
+    <span class="visually-hidden">Loading...</span>
+</div>
+
+<style>
+    #codeEditor:focus, #inputEditor:focus {
+        outline: none;
+        box-shadow: none;
+    }
+
+    .nav-tabs .nav-link {
+        color: #888;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #0d6efd;
+        border-bottom-color: #0d6efd;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #0d6efd;
+    }
+
+    pre#outputEditor {
+        word-break: break-all;
+        white-space: pre-wrap;
+    }
+
+    .card-header, .card-footer {
+        background-color: #2d2d30 !important;
+    }
+
+    .form-select-sm {
+        background-color: #3e3e42;
+        color: #d4d4d4;
+        border-color: #555;
+    }
+
+    .form-select-sm option {
+        background-color: #3e3e42;
+        color: #d4d4d4;
+    }
+
+    .alert {
+        margin: 0;
+        padding: 10px;
+        border-radius: 0;
+    }
+</style>
+
+<script>
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const codeEditor = document.getElementById('codeEditor');
+    const inputEditor = document.getElementById('inputEditor');
+    const outputEditor = document.getElementById('outputEditor');
+    const languageSelect = document.getElementById('languageSelect');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    // Run code - Using Piston API
+    runBtn.addEventListener('click', async () => {
+        const code = codeEditor.value.trim();
+        const input = inputEditor.value;
+        const language = languageSelect.value;
+
+        if (!code) {
+            outputEditor.textContent = 'Error: Code editor is empty!';
+            return;
+        }
+
+        loadingSpinner.classList.remove('d-none');
+        runBtn.disabled = true;
+        outputEditor.textContent = 'Executing code with Piston...';
+
+        try {
+            const response = await fetch('@Url.Action("ExecuteCodeWithPiston", "Problemes")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    code: code,
+                    language: language,
+                    input: input
+                })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Piston API Success:', result);
+                
+                // Display the output
+                let displayText = '';
+                
+                // Show compile errors if any
+                if (result.compile && result.compile.stderr) {
+                    displayText += '=== Compilation Error ===\n';
+                    displayText += result.compile.stderr + '\n\n';
+                }
+                
+                // Show runtime output
+                if (result.output) {
+                    displayText += result.output;
+                } else if (result.stdout) {
+                    displayText += result.stdout;
+                }
+                
+                // Show runtime errors if any
+                if (result.stderr) {
+                    displayText += '\n=== Runtime Error ===\n';
+                    displayText += result.stderr;
+                }
+                
+                // Show exit code if non-zero
+                if (result.exitCode !== null && result.exitCode !== 0) {
+                    displayText += `\n\n[Process exited with code ${result.exitCode}]`;
+                }
+                
+                // Show language and version info
+                if (result.language && result.version) {
+                    displayText += `\n\n[Executed with ${result.language} ${result.version}]`;
+                }
+                
+                outputEditor.textContent = displayText || 'Execution completed with no output.';
+                
+                // Switch to output tab
+                document.getElementById('output-tab').click();
+            } else {
+                const errorData = await response.json();
+                console.error('❌ Piston API error:', errorData);
+                outputEditor.textContent = `Error: ${errorData.error || 'Failed to execute code'}\n\nDetails: ${errorData.details || 'Unknown error'}`;
+            }
+        } catch (error) {
+            console.error('❌ Execution failed:', error);
+            outputEditor.textContent = `Error: Could not execute code\n\n${error.message}\n\nPlease check:\n1. Your internet connection\n2. The Piston API service status\n3. Try again in a moment`;
+        } finally {
+            loadingSpinner.classList.add('d-none');
+            runBtn.disabled = false;
+        }
+    });
+
+    // Clear all
+    clearBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear all editors?')) {
+            codeEditor.value = '';
+            inputEditor.value = '';
+            outputEditor.textContent = 'Output will appear here...';
+            codeEditor.focus();
+        }
+    });
+
+    // Submit solution
+    submitBtn.addEventListener('click', () => {
+        const code = codeEditor.value.trim();
+        if (!code) {
+            alert('Please write some code before submitting!');
+            return;
+        }
+        alert('Solution submitted! (This is a placeholder - implement submission logic as needed)');
+        // TODO: Implement submission logic to save to database
+    });
+
+    // Code editor keyboard shortcuts
+    codeEditor.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = codeEditor.selectionStart;
+            const end = codeEditor.selectionEnd;
+            codeEditor.value = codeEditor.value.substring(0, start) + '\t' + codeEditor.value.substring(end);
+            codeEditor.selectionStart = codeEditor.selectionEnd = start + 1;
+        }
+    });
+
+    // Focus on code editor by default
+    codeEditor.focus();
+</script>

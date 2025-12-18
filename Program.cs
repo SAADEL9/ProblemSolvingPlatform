@@ -17,6 +17,9 @@ builder.Services.AddDbContext<ProblemSolvingPlatformContext>(options =>
     )
 );
 
+// Add HttpClientFactory for API calls
+builder.Services.AddHttpClient();
+
 // Add ASP.NET Identity
 builder.Services.AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<ProblemSolvingPlatformContext>()
@@ -24,6 +27,9 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 
 // Add Email Sender
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+// Add Piston Code Execution Service
+builder.Services.AddScoped<PistonCodeExecutionService>();
 
 // Configure Identity options
 builder.Services.Configure<IdentityOptions>(options =>

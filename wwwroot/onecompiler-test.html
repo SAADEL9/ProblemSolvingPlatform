@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneCompiler API Direct Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+        }
+        textarea {
+            background-color: #2d2d30;
+            color: #d4d4d4;
+            border-color: #555;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #2d2d30;
+            color: #d4d4d4;
+            border: 1px solid #555;
+            padding: 15px;
+        }
+        .card {
+            background-color: #252526;
+            border-color: #555;
+        }
+        .card-header {
+            background-color: #2d2d30;
+            border-color: #555;
+        }
+        .alert {
+            background-color: #3e3e42;
+            border-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-white mb-4">
+            <i class="bi bi-terminal"></i> OneCompiler API Direct Test
+        </h1>
+
+        <div class="row g-4">
+            <!-- Left: Code -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Code</h5>
+                    </div>
+                    <div class="card-body">
+                        <label for="codeEditor" class="form-label">Select Language:</label>
+                        <select id="languageSelect" class="form-select mb-3" style="background-color: #3e3e42; color: #d4d4d4; border-color: #555;">
+                            <option value="python3" selected>Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                            <option value="go">Go</option>
+                        </select>
+
+                        <label for="codeEditor" class="form-label">Code:</label>
+                        <textarea id="codeEditor" class="form-control" rows="15" style="height: 300px;">print("Hello World!")</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Input & Output -->
+            <div class="col-lg-6">
+                <!-- Input -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Input (Optional)</h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="inputEditor" class="form-control" rows="5" placeholder="Enter test input here..." style="height: 120px;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Output -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Output</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre id="outputEditor" style="height: 200px; overflow-y: auto;">Click "Run Code" to see output...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <button id="runBtn" class="btn btn-success btn-lg me-2">
+                    <i class="bi bi-play-fill"></i> Run Code (Direct API)
+                </button>
+                <button id="clearBtn" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-arrow-clockwise"></i> Clear All
+                </button>
+                <span id="status" class="ms-3 text-info"></span>
+            </div>
+        </div>
+
+        <!-- Test Cases -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="text-white mb-3">Quick Test Cases</h3>
+                <div class="btn-group-vertical w-100" role="group">
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(1)">
+                        <strong>Test 1:</strong> Python - Hello World
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(2)">
+                        <strong>Test 2:</strong> Python - Math Operations
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(3)">
+                        <strong>Test 3:</strong> Python - Loop
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(4)">
+                        <strong>Test 4:</strong> JavaScript - Hello World
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(5)">
+                        <strong>Test 5:</strong> Java - Hello World
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(6)">
+                        <strong>Test 6:</strong> C++ - Hello World
+                    </button>
+                    <button type="button" class="btn btn-outline-info text-start" onclick="loadTest(7)">
+                        <strong>Test 7:</strong> Python - Fibonacci
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Debug Info</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre id="debugInfo" style="height: 150px; overflow-y: auto; background-color: #2d2d30; color: #00ff00;">Ready...</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const codeEditor = document.getElementById('codeEditor');
+        const inputEditor = document.getElementById('inputEditor');
+        const outputEditor = document.getElementById('outputEditor');
+        const languageSelect = document.getElementById('languageSelect');
+        const status = document.getElementById('status');
+        const debugInfo = document.getElementById('debugInfo');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.textContent += `\n[${timestamp}] ${message}`;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+
+        // Test cases
+        const tests = {
+            1: {
+                lang: 'python3',
+                code: 'print("Hello World!")',
+                name: 'Python - Hello World'
+            },
+            2: {
+                lang: 'python3',
+                code: `a = 10
+b = 20
+print(f"Sum: {a + b}")
+print(f"Product: {a * b}")`,
+                name: 'Python - Math Operations'
+            },
+            3: {
+                lang: 'python3',
+                code: `for i in range(5):
+    print(f"Number {i}")`,
+                name: 'Python - Loop'
+            },
+            4: {
+                lang: 'javascript',
+                code: `console.log("Hello from JavaScript!");
+console.log("2 + 2 = " + (2 + 2));`,
+                name: 'JavaScript - Hello World'
+            },
+            5: {
+                lang: 'java',
+                code: `public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello from Java!");
+    }
+}`,
+                name: 'Java - Hello World'
+            },
+            6: {
+                lang: 'cpp',
+                code: `#include <iostream>
+using namespace std;
+
+int main() {
+    cout << "Hello from C++!" << endl;
+    return 0;
+}`,
+                name: 'C++ - Hello World'
+            },
+            7: {
+                lang: 'python3',
+                code: `def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        print(a, end=" ")
+        a, b = b, a + b
+    print()
+
+fibonacci(10)`,
+                name: 'Python - Fibonacci'
+            }
+        };
+
+        function loadTest(testNum) {
+            const test = tests[testNum];
+            if (test) {
+                codeEditor.value = test.code;
+                languageSelect.value = test.lang;
+                outputEditor.textContent = 'Click "Run Code" to execute...';
+                log(`Loaded test: ${test.name}`);
+            }
+        }
+
+        // Run code directly against OneCompiler API
+        runBtn.addEventListener('click', async () => {
+            const code = codeEditor.value.trim();
+            const input = inputEditor.value;
+            const language = languageSelect.value;
+
+            if (!code) {
+                outputEditor.textContent = 'Error: Code editor is empty!';
+                log('ERROR: Empty code');
+                return;
+            }
+
+            status.textContent = 'Executing...';
+            log(`Executing ${language} code...`);
+            runBtn.disabled = true;
+
+            try {
+                const payload = {
+                    language: language,
+                    code: code,
+                    stdin: input || ""
+                };
+
+                log(`Payload: ${JSON.stringify(payload)}`);
+
+                const response = await fetch('https://api.onecompiler.com/api/v1/code/exec', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                log(`Response Status: ${response.status}`);
+
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`Response received: ${JSON.stringify(result)}`);
+
+                    const output = result.stdout || result.output || '';
+                    const error = result.stderr || result.error || '';
+                    
+                    if (output) {
+                        outputEditor.textContent = output;
+                        log('Execution successful');
+                    } else if (error) {
+                        outputEditor.textContent = 'Error:\n' + error;
+                        log(`Execution error: ${error}`);
+                    } else {
+                        outputEditor.textContent = 'Execution completed with no output.';
+                        log('No output');
+                    }
+
+                    status.textContent = '? Success';
+                } else {
+                    const errorText = await response.text();
+                    outputEditor.textContent = `Error: ${response.status}\n${errorText}`;
+                    log(`HTTP Error: ${response.status} - ${errorText}`);
+                    status.textContent = '? Failed';
+                }
+            } catch (error) {
+                outputEditor.textContent = 'Error: ' + error.message;
+                log(`Exception: ${error.message}`);
+                status.textContent = '? Exception';
+                console.error('Full error:', error);
+            } finally {
+                runBtn.disabled = false;
+                setTimeout(() => {
+                    status.textContent = '';
+                }, 3000);
+            }
+        });
+
+        // Clear all
+        clearBtn.addEventListener('click', () => {
+            if (confirm('Clear all editors?')) {
+                codeEditor.value = '';
+                inputEditor.value = '';
+                outputEditor.textContent = 'Output will appear here...';
+                debugInfo.textContent = 'Ready...';
+                log('Cleared all editors');
+            }
+        });
+
+        // Load first test by default
+        loadTest(1);
+    </script>
+</body>
+</html>
