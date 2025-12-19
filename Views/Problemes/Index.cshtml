@@ -1,63 +1,146 @@
 ﻿@model IEnumerable<ProblemSolvingPlatform.Models.Probleme>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ProblemSolvingPlatform.Models.User> SignInManager
+@inject UserManager<ProblemSolvingPlatform.Models.User> UserManager
 
 @{
     ViewData["Title"] = "Problems List";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="container mt-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold">Problems</h2>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Create New
-        </a>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body p-0">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-dark">
-                    <tr>
-                        <th>@Html.DisplayNameFor(model => model.Title)</th>
-                        <th>@Html.DisplayNameFor(model => model.Descr)</th>
-                        <th>@Html.DisplayNameFor(model => model.Difficulte)</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => item.Title)</td>
-                            <td>@Html.DisplayFor(modelItem => item.Descr)</td>
-                            <td>
-                                <span class="badge
-                                        @(item.Difficulte == "Easy" ? "bg-success" :
-                                                                            item.Difficulte == "Medium" ? "bg-warning text-dark" :
-                                                                            "bg-danger")">
-                                @item.Difficulte
-                            </span>
-                        </td>
-                        <td class="text-center">
-
-                                <a asp-action="Details" asp-route-id="@item.ProbId" class="btn btn-sm btn-info me-1 text-white">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-
-                                <a asp-action="Edit" asp-route-id="@item.ProbId" class="btn btn-sm btn-warning me-1">
-                                    <i class="bi bi-pencil-square"></i>
-                                </a>
-
-                                <a asp-action="Delete" asp-route-id="@item.ProbId" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-
-                            </td>
-                        </tr>
-                                        }
-                </tbody>
-            </table>
+<div class="container-fluid py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 200px;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="fw-bold text-white mb-2">
+                    <i class="bi bi-code-square"></i> Problems
+                </h1>
+                <p class="text-white-50 mb-0">Solve coding problems and improve your skills</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                @if (isAdmin)
+                {
+                    <a asp-action="Create" class="btn btn-light btn-lg">
+                        <i class="bi bi-plus-circle"></i> Create Problem
+                    </a>
+                }
+            </div>
         </div>
     </div>
-
 </div>
+
+<div class="container py-5">
+    <!-- Problems Grid -->
+    <div class="row g-4">
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card shadow-sm border-0 h-100 problem-card" style="transition: all 0.3s ease; cursor: pointer;">
+                        <div class="card-body d-flex flex-column">
+                            <!-- Difficulty Badge -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title fw-bold flex-grow-1 pe-2">
+                                    @Html.DisplayFor(modelItem => item.Title)
+                                </h5>
+                                <span class="badge
+                                    @(item.Difficulte == "Easy" ? "bg-success" :
+                                      item.Difficulte == "Medium" ? "bg-warning text-dark" :
+                                      "bg-danger")" style="font-size: 0.75rem; white-space: nowrap;">
+                                    @item.Difficulte
+                                </span>
+                            </div>
+
+                            <!-- Description -->
+                            <p class="card-text text-muted flex-grow-1 mb-4" style="font-size: 0.95rem; line-height: 1.5;">
+                                @{
+                                    var description = Html.DisplayFor(modelItem => item.Descr).ToString();
+                                    if (description.Length > 100)
+                                    {
+                                        @(description.Substring(0, 100) + "...")
+                                    }
+                                    else
+                                    {
+                                        @description
+                                    }
+                                }
+                            </p>
+
+                            <!-- Problem ID -->
+                            <small class="text-muted d-block mb-3">
+                                <i class="bi bi-hash"></i> Problem #@item.ProbId
+                            </small>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2 mt-auto">
+                                <a asp-action="Details" asp-route-id="@item.ProbId" class="btn btn-primary flex-grow-1">
+                                    <i class="bi bi-play-circle"></i> Solve
+                                </a>
+                                @if (isAdmin)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@item.ProbId" class="btn btn-outline-warning">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.ProbId" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #17a2b8;"></i>
+                    <h5 class="mt-3">No Problems Yet</h5>
+                    <p class="text-muted">Start by creating your first problem!</p>
+                    @if (isAdmin)
+                    {
+                        <a asp-action="Create" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle"></i> Create First Problem
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .problem-card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .problem-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.15) !important;
+    }
+
+    .card-title {
+        color: #333;
+        font-size: 1.15rem;
+    }
+
+    .card-text {
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+</style>

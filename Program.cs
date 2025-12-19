@@ -90,4 +90,43 @@ app.MapControllerRoute(
 
 app.MapRazorPages();
 
+// Seed roles and admin user
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+    // Ensure Admin role exists
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole<int> { Name = "Admin" });
+    }
+
+    // Ensure User role exists
+    if (!await roleManager.RoleExistsAsync("User"))
+    {
+        await roleManager.CreateAsync(new IdentityRole<int> { Name = "User" });
+    }
+
+    // Optionally create a default admin user (uncomment if needed)
+    // var adminUser = await userManager.FindByEmailAsync("admin@example.com");
+    // if (adminUser == null)
+    // {
+    //     var newAdmin = new User 
+    //     { 
+    //         UserName = "admin",
+    //         Email = "admin@example.com",
+    //         FirstName = "Admin",
+    //         LastName = "User",
+    //         RegistrationDate = DateTime.Now,
+    //         IsActive = true
+    //     };
+    //     var result = await userManager.CreateAsync(newAdmin, "Admin123!");
+    //     if (result.Succeeded)
+    //     {
+    //         await userManager.AddToRoleAsync(newAdmin, "Admin");
+    //     }
+    // }
+}
+
 app.Run();

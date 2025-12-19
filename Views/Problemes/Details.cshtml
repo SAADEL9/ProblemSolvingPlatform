@@ -1,76 +1,105 @@
 ﻿@model ProblemSolvingPlatform.Models.Probleme
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ProblemSolvingPlatform.Models.User> SignInManager
+@inject UserManager<ProblemSolvingPlatform.Models.User> UserManager
 
 @{
     ViewData["Title"] = "Problem Details";
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="container mt-4" style="width:max">
-
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="fw-bold">Problem Details</h2>
-        <div class="mt-3">
-            <a asp-action="Edit" asp-route-id="@Model?.ProbId" class="btn btn-warning me-2">
-                <i class="bi bi-pencil-square"></i> Edit
-            </a>
-            <a asp-action="Index" class="btn btn-outline-secondary">
-                Back to List
-            </a>
+<!-- Header Section -->
+<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 2rem;">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h1 class="fw-bold mb-2">
+                    <i class="bi bi-code-square"></i> @Model.Title
+                </h1>
+                <p class="mb-0 text-white-50">
+                    <i class="bi bi-hash"></i> Problem #@Model.ProbId
+                </p>
+            </div>
+            <div class="text-end">
+                <a asp-action="Index" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back to Problems
+                </a>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge
+                @(Model.Difficulte == "Easy" ? "bg-success" :
+                  Model.Difficulte == "Medium" ? "bg-warning text-dark" :
+                  "bg-danger")" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                <i class="bi bi-speedometer2"></i> @Model.Difficulte
+            </span>
         </div>
     </div>
+</div>
 
+<div class="container py-4">
     <div class="row g-4">
         <!-- Left Section: Problem Details -->
-        <div class="col-md-6">
-            <div class="card shadow-sm" style="height: 600px; width:630px; overflow-y: auto;">
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Problem Details
+                    </h5>
+                </div>
                 <div class="card-body">
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-muted mb-2">
+                            <i class="bi bi-file-text"></i> Description
+                        </h6>
+                        <p class="mb-0 text-dark" style="line-height: 1.6;">
+                            @Model.Descr
+                        </p>
+                    </div>
 
-                    <dl class="row mb-0">
-
-                        <dt class="col-sm-4 fw-semibold text-muted">
-                            @Html.DisplayNameFor(model => model.Title)
-                        </dt>
-                        <dd class="col-sm-8">
-                            @Html.DisplayFor(model => model.Title)
-                        </dd>
-
-                        <dt class="col-sm-4 fw-semibold text-muted">
-                            @Html.DisplayNameFor(model => model.Descr)
-                        </dt>
-                        <dd class="col-sm-8">
-                            @Html.DisplayFor(model => model.Descr)
-                        </dd>
-
-                        <dt class="col-sm-4 fw-semibold text-muted">
-                            @Html.DisplayNameFor(model => model.Difficulte)
-                        </dt>
-                        <dd class="col-sm-8">
+                    <!-- Difficulty Level -->
+                    <div class="mb-4">
+                        <h6 class="fw-semibold text-muted mb-2">
+                            <i class="bi bi-speedometer2"></i> Difficulty
+                        </h6>
+                        <div>
                             <span class="badge
                                 @(Model.Difficulte == "Easy" ? "bg-success" :
-                                                                                            Model.Difficulte == "Medium" ? "bg-warning text-dark" :
-                                                                                            "bg-danger")">
+                                  Model.Difficulte == "Medium" ? "bg-warning text-dark" :
+                                  "bg-danger")" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
                                 @Model.Difficulte
                             </span>
-                        </dd>
+                        </div>
+                    </div>
 
-                    </dl>
-
+                    <!-- Admin Action Buttons -->
+                    @if (isAdmin)
+                    {
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.ProbId" class="btn btn-warning flex-grow-1">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.ProbId" class="btn btn-danger flex-grow-1">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
-
-           
         </div>
 
         <!-- Right Section: Code Editor with Piston API Integration -->
-        <div class="col-md-6">
-            <div class="card shadow-sm" style="height: 600px; width:630px; display: flex; flex-direction: column;">
-                <div class="card-header bg-dark border-bottom">
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0" style="height: 750px; display: flex; flex-direction: column;">
+                <div class="card-header bg-dark border-bottom" style="background-color: #2d2d30 !important;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
+                        <h5 class="mb-0 text-white">
                             <i class="bi bi-terminal"></i> Code Compiler (Piston API)
                         </h5>
-                        <select id="languageSelect" class="form-select form-select-sm" style="width: 150px;">
+                        <select id="languageSelect" class="form-select form-select-sm" style="width: 150px; background-color: #3e3e42; color: #d4d4d4; border-color: #555;">
                             <option value="javascript">JavaScript</option>
-                            <option value="python3">Python</option>
+                            <option value="python">Python</option>
                             <option value="java">Java</option>
                             <option value="cpp">C++</option>
                             <option value="csharp">C#</option>
@@ -89,7 +118,7 @@
                     </div>
 
                     <!-- Input/Output Tabs -->
-                    <ul class="nav nav-tabs" id="editorTabs" role="tablist" style="border-radius: 0;">
+                    <ul class="nav nav-tabs" id="editorTabs" role="tablist" style="border-radius: 0; background-color: #f8f9fa; border-color: #dee2e6;">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button" role="tab">
                                 <i class="bi bi-arrow-down"></i> Input
@@ -116,22 +145,20 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="card-footer bg-dark border-top d-flex gap-2">
+                <div class="card-footer bg-dark border-top d-flex gap-2" style="background-color: #2d2d30 !important;">
                     <button id="runBtn" class="btn btn-success btn-sm flex-grow-1">
                         <i class="bi bi-play-fill"></i> Run Code
                     </button>
                     <button id="clearBtn" class="btn btn-secondary btn-sm flex-grow-1">
                         <i class="bi bi-arrow-clockwise"></i> Clear
                     </button>
-                    <button id="submitBtn" class="btn btn-primary btn-sm flex-grow-1">
+                    <button id="submitBtn" class="btn btn-primary btn-sm flex-grow-1" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
                         <i class="bi bi-check-circle"></i> Submit
                     </button>
                 </div>
             </div>
         </div>
-
     </div>
-
 </div>
 
 <!-- Loading Spinner -->
@@ -146,21 +173,25 @@
     }
 
     .nav-tabs .nav-link {
-        color: #888;
+        color: #6c757d;
         border: none;
-        border-bottom: 2px solid transparent;
+        border-bottom: 3px solid transparent;
         cursor: pointer;
-        padding: 8px 15px;
-        font-size: 14px;
-    }
-
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        border-bottom-color: #0d6efd;
+        padding: 10px 15px;
+        font-size: 13px;
+        transition: all 0.3s ease;
     }
 
     .nav-tabs .nav-link:hover {
-        color: #0d6efd;
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #667eea;
+        border-color: transparent;
+        border-bottom-color: #667eea;
+        background-color: transparent;
     }
 
     pre#outputEditor {
@@ -168,25 +199,29 @@
         white-space: pre-wrap;
     }
 
-    .card-header, .card-footer {
-        background-color: #2d2d30 !important;
-    }
-
-    .form-select-sm {
-        background-color: #3e3e42;
-        color: #d4d4d4;
-        border-color: #555;
-    }
-
     .form-select-sm option {
         background-color: #3e3e42;
         color: #d4d4d4;
     }
 
-    .alert {
-        margin: 0;
-        padding: 10px;
-        border-radius: 0;
+    .card {
+        transition: all 0.3s ease;
+    }
+
+    .sticky-top {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
     }
 </style>
 
@@ -263,7 +298,7 @@
                 if (result.language && result.version) {
                     displayText += `\n\n[Executed with ${result.language} ${result.version}]`;
                 }
-                
+
                 outputEditor.textContent = displayText || 'Execution completed with no output.';
                 
                 // Switch to output tab
@@ -300,7 +335,6 @@
             return;
         }
         alert('Solution submitted! (This is a placeholder - implement submission logic as needed)');
-        // TODO: Implement submission logic to save to database
     });
 
     // Code editor keyboard shortcuts

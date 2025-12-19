@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -48,6 +49,114 @@ namespace ProblemSolvingPlatform.Controllers
             }
 
             return View(probleme);
+        }
+
+        // GET: Problemes/Create
+        [Authorize(Roles = "Admin")]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Problemes/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("Title,Descr,Difficulte")] Probleme probleme)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Add(probleme);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            return View(probleme);
+        }
+
+        // GET: Problemes/Edit/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var probleme = await _context.Problemes.FindAsync(id);
+            if (probleme == null)
+            {
+                return NotFound();
+            }
+            return View(probleme);
+        }
+
+        // POST: Problemes/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("ProbId,Title,Descr,Difficulte")] Probleme probleme)
+        {
+            if (id != probleme.ProbId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(probleme);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ProblemeExists(probleme.ProbId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            return View(probleme);
+        }
+
+        // GET: Problemes/Delete/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var probleme = await _context.Problemes
+                .FirstOrDefaultAsync(m => m.ProbId == id);
+            if (probleme == null)
+            {
+                return NotFound();
+            }
+
+            return View(probleme);
+        }
+
+        // POST: Problemes/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var probleme = await _context.Problemes.FindAsync(id);
+            if (probleme != null)
+            {
+                _context.Problemes.Remove(probleme);
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: Problemes/ExecuteCode
@@ -111,7 +220,6 @@ namespace ProblemSolvingPlatform.Controllers
                 }
                 catch (HttpRequestException hre) when (hre.InnerException is System.Net.Sockets.SocketException)
                 {
-                    // Network error - DNS resolution failed or connection refused
                     return BadRequest(new 
                     { 
                         error = "Network error: Cannot connect to OneCompiler API. Check your internet connection or firewall settings.",
@@ -150,7 +258,6 @@ namespace ProblemSolvingPlatform.Controllers
         {
             try
             {
-                // Map common language names to Piston language identifiers
                 var languageMap = new Dictionary<string, string>
                 {
                     { "javascript", "javascript" },
@@ -210,112 +317,6 @@ namespace ProblemSolvingPlatform.Controllers
             {
                 return BadRequest(new { error = "An error occurred: " + ex.Message });
             }
-        }
-
-        // GET: Problemes/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: Problemes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ProbId,Title,Descr,Difficulte")] Probleme probleme)
-        {
-            if (ModelState.IsValid)
-            {
-                _context.Add(probleme);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(probleme);
-        }
-
-        // GET: Problemes/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var probleme = await _context.Problemes.FindAsync(id);
-            if (probleme == null)
-            {
-                return NotFound();
-            }
-            return View(probleme);
-        }
-
-        // POST: Problemes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ProbId,Title,Descr,Difficulte")] Probleme probleme)
-        {
-            if (id != probleme.ProbId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(probleme);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProblemeExists(probleme.ProbId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(probleme);
-        }
-
-        // GET: Problemes/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var probleme = await _context.Problemes
-                .FirstOrDefaultAsync(m => m.ProbId == id);
-            if (probleme == null)
-            {
-                return NotFound();
-            }
-
-            return View(probleme);
-        }
-
-        // POST: Problemes/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var probleme = await _context.Problemes.FindAsync(id);
-            if (probleme != null)
-            {
-                _context.Problemes.Remove(probleme);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
         }
 
         private bool ProblemeExists(int id)
