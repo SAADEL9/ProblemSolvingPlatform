@@ -18,11 +18,21 @@ namespace ProblemSolvingPlatform.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Get latest 5 problems
+            // Get latest 5 problems (filter out null CreatedAt)
             var latestProblems = await _context.Problemes
-                .OrderByDescending(p => p.ProbId)
+                .Where(p => p.CreatedAt != null)
+                .OrderByDescending(p => p.CreatedAt)
                 .Take(5)
                 .ToListAsync();
+
+            // If no problems with CreatedAt, get by ProbId
+            if (latestProblems.Count == 0)
+            {
+                latestProblems = await _context.Problemes
+                    .OrderByDescending(p => p.ProbId)
+                    .Take(5)
+                    .ToListAsync();
+            }
 
             // Get problem counts by difficulty
             var easyCount = await _context.Problemes.Where(p => p.Difficulte == "Easy").CountAsync();

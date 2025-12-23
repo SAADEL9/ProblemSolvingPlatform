@@ -35,15 +35,40 @@
                     <span asp-validation-for="Descr" class="text-danger small"></span>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Difficulte" class="form-label fw-semibold"></label>
+                        <select asp-for="Difficulte" class="form-select">
+                            <option value="">-- Select Difficulty --</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                        <span asp-validation-for="Difficulte" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Language" class="form-label fw-semibold"></label>
+                        <select asp-for="Language" class="form-select">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                        </select>
+                        <span asp-validation-for="Language" class="text-danger small"></span>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label asp-for="Difficulte" class="form-label fw-semibold"></label>
-                    <select asp-for="Difficulte" class="form-select">
-                        <option value="">-- Select Difficulty --</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                    <span asp-validation-for="Difficulte" class="text-danger small"></span>
+                    <label asp-for="FunctionTemplate" class="form-label fw-semibold">Function Template</label>
+                    <textarea asp-for="FunctionTemplate" class="form-control" rows="6" placeholder="Update the function template..."></textarea>
+                    <span asp-validation-for="FunctionTemplate" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TestCases" class="form-label fw-semibold">Test Cases (JSON format)</label>
+                    <textarea asp-for="TestCases" class="form-control" rows="6" placeholder="Update test cases..."></textarea>
+                    <span asp-validation-for="TestCases" class="text-danger small"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primary px-4">

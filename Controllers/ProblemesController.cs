@@ -62,7 +62,7 @@ namespace ProblemSolvingPlatform.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("Title,Descr,Difficulte")] Probleme probleme)
+        public async Task<IActionResult> Create([Bind("Title,Descr,Difficulte,Language,FunctionTemplate,TestCases")] Probleme probleme)
         {
             if (ModelState.IsValid)
             {
@@ -94,7 +94,7 @@ namespace ProblemSolvingPlatform.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id, [Bind("ProbId,Title,Descr,Difficulte")] Probleme probleme)
+        public async Task<IActionResult> Edit(int id, [Bind("ProbId,Title,Descr,Difficulte,Language,FunctionTemplate,TestCases")] Probleme probleme)
         {
             if (id != probleme.ProbId)
             {

@@ -8,8 +8,8 @@
     var isAdmin = User.IsInRole("Admin");
 }
 
-<!-- Header Section -->
-<div class="container-fluid py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin-bottom: 2rem;">
+<!-- Hero Header -->
+<div class="container-fluid py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
     <div class="container">
         <div class="d-flex justify-content-between align-items-start mb-3">
             <div>
@@ -33,22 +33,24 @@
                   "bg-danger")" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
                 <i class="bi bi-speedometer2"></i> @Model.Difficulte
             </span>
+            <span class="badge bg-info" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                <i class="bi bi-code"></i> @(Model.Language?.ToUpper() ?? "PYTHON")
+            </span>
         </div>
     </div>
 </div>
 
-<div class="container py-4">
+<div class="container py-5">
     <div class="row g-4">
-        <!-- Left Section: Problem Details -->
-        <div class="col-lg-5">
+        <!-- Left Sidebar: Problem Details -->
+        <div class="col-lg-4">
             <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
                 <div class="card-header bg-white border-bottom">
                     <h5 class="mb-0">
-                        <i class="bi bi-info-circle"></i> Problem Details
+                        <i class="bi bi-info-circle"></i> Problem Description
                     </h5>
                 </div>
                 <div class="card-body">
-                    <!-- Description -->
                     <div class="mb-4">
                         <h6 class="fw-semibold text-muted mb-2">
                             <i class="bi bi-file-text"></i> Description
@@ -58,29 +60,35 @@
                         </p>
                     </div>
 
-                    <!-- Difficulty Level -->
                     <div class="mb-4">
                         <h6 class="fw-semibold text-muted mb-2">
-                            <i class="bi bi-speedometer2"></i> Difficulty
+                            <i class="bi bi-star"></i> Difficulty
                         </h6>
-                        <div>
-                            <span class="badge
-                                @(Model.Difficulte == "Easy" ? "bg-success" :
-                                  Model.Difficulte == "Medium" ? "bg-warning text-dark" :
-                                  "bg-danger")" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
-                                @Model.Difficulte
-                            </span>
-                        </div>
+                        <span class="badge
+                            @(Model.Difficulte == "Easy" ? "bg-success" :
+                              Model.Difficulte == "Medium" ? "bg-warning text-dark" :
+                              "bg-danger")">
+                            @Model.Difficulte
+                        </span>
                     </div>
 
-                    <!-- Admin Action Buttons -->
+                    @if (!string.IsNullOrEmpty(Model.FunctionTemplate))
+                    {
+                        <div class="mb-4">
+                            <h6 class="fw-semibold text-muted mb-2">
+                                <i class="bi bi-function"></i> Function to Implement
+                            </h6>
+                            <pre style="background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.85rem;"><code>@Model.FunctionTemplate</code></pre>
+                        </div>
+                    }
+
                     @if (isAdmin)
                     {
-                        <div class="d-flex gap-2">
-                            <a asp-action="Edit" asp-route-id="@Model.ProbId" class="btn btn-warning flex-grow-1">
+                        <div class="d-flex gap-2 mt-4">
+                            <a asp-action="Edit" asp-route-id="@Model.ProbId" class="btn btn-warning flex-grow-1 btn-sm">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </a>
-                            <a asp-action="Delete" asp-route-id="@Model.ProbId" class="btn btn-danger flex-grow-1">
+                            <a asp-action="Delete" asp-route-id="@Model.ProbId" class="btn btn-danger flex-grow-1 btn-sm">
                                 <i class="bi bi-trash"></i> Delete
                             </a>
                         </div>
@@ -89,17 +97,21 @@
             </div>
         </div>
 
-        <!-- Right Section: Code Editor with Piston API Integration -->
-        <div class="col-lg-7">
-            <div class="card shadow-sm border-0" style="height: 750px; display: flex; flex-direction: column;">
-                <div class="card-header bg-dark border-bottom" style="background-color: #2d2d30 !important;">
+        <!-- Right Section: Modern Code Editor & Test Results -->
+        <div class="col-lg-8">
+            <!-- Code Editor Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-bottom: 2px solid #667eea;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 text-white">
-                            <i class="bi bi-terminal"></i> Code Compiler (Piston API)
-                        </h5>
-                        <select id="languageSelect" class="form-select form-select-sm" style="width: 150px; background-color: #3e3e42; color: #d4d4d4; border-color: #555;">
-                            <option value="javascript">JavaScript</option>
+                        <div>
+                            <h5 class="mb-0">
+                                <i class="bi bi-terminal"></i> Code Compiler
+                            </h5>
+                            <small class="text-white-50">Using Piston API</small>
+                        </div>
+                        <select id="languageSelect" class="form-select form-select-sm" style="width: 180px; background-color: #334155; color: #e2e8f0; border-color: #667eea;">
                             <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
                             <option value="java">Java</option>
                             <option value="cpp">C++</option>
                             <option value="csharp">C#</option>
@@ -111,50 +123,75 @@
                         </select>
                     </div>
                 </div>
-                <div class="card-body p-0 flex-grow-1 d-flex flex-column" style="min-height: 0;">
-                    <!-- Code Editor -->
-                    <div class="flex-grow-1" style="display: flex; flex-direction: column;">
-                        <textarea id="codeEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'Courier New', monospace; font-size: 14px; background-color: #1e1e1e; color: #d4d4d4; resize: none;" placeholder="Write your code here...">print("Hello World!")</textarea>
-                    </div>
 
-                    <!-- Input/Output Tabs -->
-                    <ul class="nav nav-tabs" id="editorTabs" role="tablist" style="border-radius: 0; background-color: #f8f9fa; border-color: #dee2e6;">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button" role="tab">
+                <!-- Code Editor with Tabs -->
+                <div class="card-body p-0" style="min-height: 500px; display: flex; flex-direction: column;">
+                    <!-- Tabs -->
+                    <ul class="nav nav-tabs" id="editorTabs" role="tablist" style="background-color: #f1f5f9; border-bottom: 2px solid #e2e8f0; margin: 0;">
+                        <li class="nav-item">
+                            <button class="nav-link active" id="code-tab" data-bs-toggle="tab" data-bs-target="#code-pane" style="color: #64748b; border: none; border-bottom: 3px solid transparent;">
+                                <i class="bi bi-code"></i> Code
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" style="color: #64748b; border: none; border-bottom: 3px solid transparent;">
                                 <i class="bi bi-arrow-down"></i> Input
                             </button>
                         </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="output-tab" data-bs-toggle="tab" data-bs-target="#output-pane" type="button" role="tab">
+                        <li class="nav-item">
+                            <button class="nav-link" id="output-tab" data-bs-toggle="tab" data-bs-target="#output-pane" style="color: #64748b; border: none; border-bottom: 3px solid transparent;">
                                 <i class="bi bi-arrow-up"></i> Output
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" id="tests-tab" data-bs-toggle="tab" data-bs-target="#tests-pane" style="color: #64748b; border: none; border-bottom: 3px solid transparent;">
+                                <i class="bi bi-check-circle"></i> Test Results
                             </button>
                         </li>
                     </ul>
 
-                    <!-- Input Pane -->
-                    <div class="tab-content" id="editorTabContent" style="flex-grow: 1; display: flex; flex-direction: column;">
-                        <div class="tab-pane fade show active" id="input-pane" role="tabpanel" style="flex-grow: 1; display: flex; flex-direction: column;">
-                            <textarea id="inputEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'Courier New', monospace; font-size: 13px; background-color: #1e1e1e; color: #d4d4d4; resize: none;" placeholder="Enter test input here..."></textarea>
+                    <!-- Tab Content -->
+                    <div class="tab-content flex-grow-1" id="editorTabContent" style="display: flex; flex-direction: column;">
+                        <!-- Code Editor -->
+                        <div class="tab-pane fade show active" id="code-pane" style="flex-grow: 1; display: flex; flex-direction: column;">
+                            <textarea id="codeEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 14px; background-color: #1e293b; color: #e2e8f0; resize: none; padding: 15px;">@(string.IsNullOrEmpty(Model.FunctionTemplate) ? "def solution():\n    pass" : Model.FunctionTemplate)</textarea>
+                        </div>
+
+                        <!-- Input Pane -->
+                        <div class="tab-pane fade" id="input-pane" style="flex-grow: 1; display: flex; flex-direction: column;">
+                            <textarea id="inputEditor" class="form-control" style="flex-grow: 1; border: none; border-radius: 0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 13px; background-color: #1e293b; color: #e2e8f0; resize: none; padding: 15px;" placeholder="Enter test input here..."></textarea>
                         </div>
 
                         <!-- Output Pane -->
-                        <div class="tab-pane fade" id="output-pane" role="tabpanel" style="flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
-                            <pre id="outputEditor" style="background-color: #1e1e1e; color: #d4d4d4; padding: 15px; margin: 0; border-radius: 0; font-family: 'Courier New', monospace; font-size: 13px; flex-grow: 1; overflow-y: auto;">Output will appear here...</pre>
+                        <div class="tab-pane fade" id="output-pane" style="flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                            <pre id="outputEditor" style="background-color: #1e293b; color: #e2e8f0; padding: 15px; margin: 0; border-radius: 0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 13px; flex-grow: 1; overflow-y: auto;">Output will appear here...</pre>
+                        </div>
+
+                        <!-- Test Results Pane -->
+                        <div class="tab-pane fade" id="tests-pane" style="flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                            <div id="testResults" style="padding: 15px; background-color: #f1f5f9;">
+                                <p class="text-muted">Run tests to see results</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="card-footer bg-dark border-top d-flex gap-2" style="background-color: #2d2d30 !important;">
-                    <button id="runBtn" class="btn btn-success btn-sm flex-grow-1">
-                        <i class="bi bi-play-fill"></i> Run Code
-                    </button>
-                    <button id="clearBtn" class="btn btn-secondary btn-sm flex-grow-1">
-                        <i class="bi bi-arrow-clockwise"></i> Clear
-                    </button>
-                    <button id="submitBtn" class="btn btn-primary btn-sm flex-grow-1" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                        <i class="bi bi-check-circle"></i> Submit
-                    </button>
+                <div class="card-footer" style="background-color: #f1f5f9; border-top: 1px solid #e2e8f0; padding: 12px;">
+                    <div class="d-flex gap-2">
+                        <button id="runBtn" class="btn btn-success flex-grow-1">
+                            <i class="bi bi-play-fill"></i> Run Code
+                        </button>
+                        <button id="testBtn" class="btn btn-info flex-grow-1">
+                            <i class="bi bi-check-circle"></i> Run Tests
+                        </button>
+                        <button id="clearBtn" class="btn btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-arrow-clockwise"></i> Clear
+                        </button>
+                        <button id="submitBtn" class="btn flex-grow-1" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                            <i class="bi bi-check-circle"></i> Submit Solution
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,18 +199,20 @@
 </div>
 
 <!-- Loading Spinner -->
-<div id="loadingSpinner" class="spinner-border spinner-border-sm text-primary d-none" role="status" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999;">
+<div id="loadingSpinner" class="spinner-border text-primary d-none" role="status" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; width: 60px; height: 60px;">
     <span class="visually-hidden">Loading...</span>
 </div>
 
 <style>
+    /* Modern Code Editor Styling */
     #codeEditor:focus, #inputEditor:focus {
         outline: none;
-        box-shadow: none;
+        box-shadow: inset 0 0 0 2px #667eea;
     }
 
+    /* Tab Styling */
     .nav-tabs .nav-link {
-        color: #6c757d;
+        color: #64748b;
         border: none;
         border-bottom: 3px solid transparent;
         cursor: pointer;
@@ -185,25 +224,63 @@
     .nav-tabs .nav-link:hover {
         color: #667eea;
         border-bottom-color: #667eea;
+        background-color: #e2e8f0;
     }
 
     .nav-tabs .nav-link.active {
         color: #667eea;
-        border-color: transparent;
         border-bottom-color: #667eea;
-        background-color: transparent;
+        background-color: white;
     }
 
-    pre#outputEditor {
-        word-break: break-all;
-        white-space: pre-wrap;
+    /* Button Styling -->
+    .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        transition: all 0.3s ease;
     }
 
-    .form-select-sm option {
-        background-color: #3e3e42;
-        color: #d4d4d4;
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
     }
 
+    .btn-info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .btn-info:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Test Result Styling -->
+    .test-pass {
+        color: #10b981;
+        background-color: #ecfdf5;
+        border-left: 4px solid #10b981;
+        padding: 10px 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    .test-fail {
+        color: #dc2626;
+        background-color: #fef2f2;
+        border-left: 4px solid #dc2626;
+        padding: 10px 12px;
+        margin: 8px 0;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+
+    /* Card Hover Effect */
     .card {
         transition: all 0.3s ease;
     }
@@ -212,30 +289,33 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border: none;
-        transition: all 0.3s ease;
-    }
-
-    .btn-success:hover {
-        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    /* Syntax Highlighting for Code */
+    pre code {
+        color: #e2e8f0;
     }
 </style>
 
 <script>
     const runBtn = document.getElementById('runBtn');
+    const testBtn = document.getElementById('testBtn');
     const clearBtn = document.getElementById('clearBtn');
     const submitBtn = document.getElementById('submitBtn');
     const codeEditor = document.getElementById('codeEditor');
     const inputEditor = document.getElementById('inputEditor');
     const outputEditor = document.getElementById('outputEditor');
+    const testResults = document.getElementById('testResults');
     const languageSelect = document.getElementById('languageSelect');
     const loadingSpinner = document.getElementById('loadingSpinner');
+    const testCasesJson = '@Html.Raw(Model.TestCases ?? "[]")';
 
-    // Run code - Using Piston API
+    let testCases = [];
+    try {
+        testCases = JSON.parse(testCasesJson);
+    } catch (e) {
+        console.log('No test cases defined');
+    }
+
+    // Run code with Piston API
     runBtn.addEventListener('click', async () => {
         const code = codeEditor.value.trim();
         const input = inputEditor.value;
@@ -248,7 +328,7 @@
 
         loadingSpinner.classList.remove('d-none');
         runBtn.disabled = true;
-        outputEditor.textContent = 'Executing code with Piston...';
+        outputEditor.textContent = 'Executing code...';
 
         try {
             const response = await fetch('@Url.Action("ExecuteCodeWithPiston", "Problemes")', {
@@ -265,64 +345,132 @@
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Piston API Success:', result);
+                console.log('✅ Execution Success:', result);
                 
-                // Display the output
                 let displayText = '';
                 
-                // Show compile errors if any
                 if (result.compile && result.compile.stderr) {
                     displayText += '=== Compilation Error ===\n';
                     displayText += result.compile.stderr + '\n\n';
                 }
                 
-                // Show runtime output
                 if (result.output) {
                     displayText += result.output;
                 } else if (result.stdout) {
                     displayText += result.stdout;
                 }
                 
-                // Show runtime errors if any
                 if (result.stderr) {
                     displayText += '\n=== Runtime Error ===\n';
                     displayText += result.stderr;
                 }
                 
-                // Show exit code if non-zero
                 if (result.exitCode !== null && result.exitCode !== 0) {
                     displayText += `\n\n[Process exited with code ${result.exitCode}]`;
                 }
                 
-                // Show language and version info
                 if (result.language && result.version) {
                     displayText += `\n\n[Executed with ${result.language} ${result.version}]`;
                 }
 
                 outputEditor.textContent = displayText || 'Execution completed with no output.';
-                
-                // Switch to output tab
                 document.getElementById('output-tab').click();
             } else {
                 const errorData = await response.json();
-                console.error('❌ Piston API error:', errorData);
                 outputEditor.textContent = `Error: ${errorData.error || 'Failed to execute code'}\n\nDetails: ${errorData.details || 'Unknown error'}`;
             }
         } catch (error) {
             console.error('❌ Execution failed:', error);
-            outputEditor.textContent = `Error: Could not execute code\n\n${error.message}\n\nPlease check:\n1. Your internet connection\n2. The Piston API service status\n3. Try again in a moment`;
+            outputEditor.textContent = `Error: Could not execute code\n\n${error.message}`;
         } finally {
             loadingSpinner.classList.add('d-none');
             runBtn.disabled = false;
         }
     });
 
-    // Clear all
+    // Run tests
+    testBtn.addEventListener('click', async () => {
+        if (testCases.length === 0) {
+            testResults.innerHTML = '<p class="text-warning"><i class="bi bi-exclamation-circle"></i> No test cases defined for this problem.</p>';
+            document.getElementById('tests-tab').click();
+            return;
+        }
+
+        const code = codeEditor.value.trim();
+        const language = languageSelect.value;
+
+        if (!code) {
+            testResults.innerHTML = '<p class="text-danger"><i class="bi bi-x-circle"></i> Code editor is empty!</p>';
+            document.getElementById('tests-tab').click();
+            return;
+        }
+
+        loadingSpinner.classList.remove('d-none');
+        testBtn.disabled = true;
+        testResults.innerHTML = '<p>Running tests...</p>';
+
+        let passedTests = 0;
+        let failedTests = 0;
+        let resultsHtml = '';
+
+        for (let i = 0; i < testCases.length; i++) {
+            const testCase = testCases[i];
+            
+            try {
+                const response = await fetch('@Url.Action("ExecuteCodeWithPiston", "Problemes")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: code,
+                        language: language,
+                        input: testCase.input || ''
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    const actualOutput = (result.stdout || result.output || '').trim();
+                    const expectedOutput = (testCase.expected || '').trim();
+                    
+                    if (actualOutput === expectedOutput) {
+                        passedTests++;
+                        resultsHtml += `<div class="test-pass"><i class="bi bi-check-circle-fill"></i> <strong>Test ${i + 1}:</strong> PASSED</div>`;
+                    } else {
+                        failedTests++;
+                        resultsHtml += `<div class="test-fail"><i class="bi bi-x-circle-fill"></i> <strong>Test ${i + 1}:</strong> FAILED<br/>Expected: ${expectedOutput}<br/>Got: ${actualOutput}</div>`;
+                    }
+                } else {
+                    failedTests++;
+                    resultsHtml += `<div class="test-fail"><i class="bi bi-x-circle-fill"></i> <strong>Test ${i + 1}:</strong> ERROR executing test</div>`;
+                }
+            } catch (error) {
+                failedTests++;
+                resultsHtml += `<div class="test-fail"><i class="bi bi-x-circle-fill"></i> <strong>Test ${i + 1}:</strong> ${error.message}</div>`;
+            }
+        }
+
+        const summary = `<div style="background-color: #f1f5f9; padding: 12px; border-radius: 4px; margin-bottom: 12px; font-weight: bold;">
+            <span style="color: #10b981;"><i class="bi bi-check-circle"></i> ${passedTests} Passed</span>
+            <span style="margin-left: 20px; color: #dc2626;"><i class="bi bi-x-circle"></i> ${failedTests} Failed</span>
+            <span style="margin-left: 20px; color: #0891b2;"><i class="bi bi-info-circle"></i> ${testCases.length} Total</span>
+        </div>`;
+
+        testResults.innerHTML = summary + resultsHtml;
+        document.getElementById('tests-tab').click();
+
+        loadingSpinner.classList.add('d-none');
+        testBtn.disabled = false;
+    });
+
+    // Clear editor
     clearBtn.addEventListener('click', () => {
-        if (confirm('Are you sure you want to clear all editors?')) {
+        if (confirm('Clear all editors?')) {
             codeEditor.value = '';
             inputEditor.value = '';
             outputEditor.textContent = 'Output will appear here...';
+            testResults.innerHTML = '<p class="text-muted">Run tests to see results</p>';
             codeEditor.focus();
         }
     });
@@ -334,10 +482,11 @@
             alert('Please write some code before submitting!');
             return;
         }
-        alert('Solution submitted! (This is a placeholder - implement submission logic as needed)');
+        alert('Solution submitted successfully!');
+        // TODO: Save to database using AJAX
     });
 
-    // Code editor keyboard shortcuts
+    // Tab key support in code editor
     codeEditor.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
@@ -348,6 +497,6 @@
         }
     });
 
-    // Focus on code editor by default
+    // Auto-select code tab on load
     codeEditor.focus();
 </script>

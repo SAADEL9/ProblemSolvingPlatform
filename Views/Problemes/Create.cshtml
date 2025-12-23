@@ -20,6 +20,7 @@
 
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+                <!-- Basic Info -->
                 <div class="mb-3">
                     <label asp-for="Title" class="form-label fw-semibold"></label>
                     <input asp-for="Title" class="form-control" placeholder="Enter problem title..." />
@@ -32,15 +33,44 @@
                     <span asp-validation-for="Descr" class="text-danger small"></span>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Difficulte" class="form-label fw-semibold"></label>
+                        <select asp-for="Difficulte" class="form-select">
+                            <option value="">-- Select Difficulty --</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                        <span asp-validation-for="Difficulte" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Language" class="form-label fw-semibold"></label>
+                        <select asp-for="Language" class="form-select">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                            <option value="java">Java</option>
+                            <option value="cpp">C++</option>
+                            <option value="csharp">C#</option>
+                        </select>
+                        <span asp-validation-for="Language" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <!-- Function Template -->
                 <div class="mb-3">
-                    <label asp-for="Difficulte" class="form-label fw-semibold"></label>
-                    <select asp-for="Difficulte" class="form-select">
-                        <option value="">-- Select Difficulty --</option>
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
-                    </select>
-                    <span asp-validation-for="Difficulte" class="text-danger small"></span>
+                    <label asp-for="FunctionTemplate" class="form-label fw-semibold">Function Template (the structure user needs to complete)</label>
+                    <textarea asp-for="FunctionTemplate" class="form-control" rows="6" placeholder="Example&#10;def twoSum(nums, target):&#10;    # Your code here&#10;    pass"></textarea>
+                    <small class="text-muted">Provide the function signature that users need to implement</small>
+                    <span asp-validation-for="FunctionTemplate" class="text-danger small"></span>
+                </div>
+
+                <!-- Test Cases -->
+                <div class="mb-3">
+                    <label asp-for="TestCases" class="form-label fw-semibold">Test Cases (JSON format)</label>
+                    <textarea asp-for="TestCases" class="form-control" rows="6" placeholder='Example:&#10;[&#10;  {"input": "[2, 7, 11, 15], 9", "expected": "[0, 1]"},&#10;  {"input": "[3, 2, 4], 6", "expected": "[1, 2]"}&#10;]'></textarea>
+                    <small class="text-muted">Provide test cases in JSON format with input and expected output</small>
+                    <span asp-validation-for="TestCases" class="text-danger small"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primary px-4">
