@@ -6,6 +6,21 @@
 @{
     ViewData["Title"] = "Problem Details";
     var isAdmin = User.IsInRole("Admin");
+
+    // Prepare test cases JSON safely for embedding in JS
+    var testsJson = "[]";
+    if (!string.IsNullOrEmpty(Model.TestCases))
+    {
+        try
+        {
+            var parsed = System.Text.Json.JsonSerializer.Deserialize<object>(Model.TestCases);
+            testsJson = System.Text.Json.JsonSerializer.Serialize(parsed);
+        }
+        catch
+        {
+            testsJson = "[]";
+        }
+    }
 }
 
 <!-- Hero Header -->
@@ -306,14 +321,7 @@
     const testResults = document.getElementById('testResults');
     const languageSelect = document.getElementById('languageSelect');
     const loadingSpinner = document.getElementById('loadingSpinner');
-    const testCasesJson = '@Html.Raw(Model.TestCases ?? "[]")';
-
-    let testCases = [];
-    try {
-        testCases = JSON.parse(testCasesJson);
-    } catch (e) {
-        console.log('No test cases defined');
-    }
+    const testCases = @Html.Raw(testsJson);
 
     // Run code with Piston API
     runBtn.addEventListener('click', async () => {
@@ -328,7 +336,7 @@
 
         loadingSpinner.classList.remove('d-none');
         runBtn.disabled = true;
-        outputEditor.textContent = 'Executing code...';
+        outputEditor.textContent = 'Executing code with Piston...';
 
         try {
             const response = await fetch('@Url.Action("ExecuteCodeWithPiston", "Problemes")', {
@@ -345,7 +353,7 @@
 
             if (response.ok) {
                 const result = await response.json();
-                console.log('✅ Execution Success:', result);
+                console.log('✅ Piston API Success:', result);
                 
                 let displayText = '';
                 
@@ -377,11 +385,12 @@
                 document.getElementById('output-tab').click();
             } else {
                 const errorData = await response.json();
+                console.error('❌ Piston API error:', errorData);
                 outputEditor.textContent = `Error: ${errorData.error || 'Failed to execute code'}\n\nDetails: ${errorData.details || 'Unknown error'}`;
             }
         } catch (error) {
             console.error('❌ Execution failed:', error);
-            outputEditor.textContent = `Error: Could not execute code\n\n${error.message}`;
+            outputEditor.textContent = `Error: Could not execute code\n\n${error.message}\n\nPlease check:\n1. Your internet connection\n2. The Piston API service status\n3. Try again in a moment`;
         } finally {
             loadingSpinner.classList.add('d-none');
             runBtn.disabled = false;
@@ -390,7 +399,7 @@
 
     // Run tests
     testBtn.addEventListener('click', async () => {
-        if (testCases.length === 0) {
+        if (!Array.isArray(testCases) || testCases.length === 0) {
             testResults.innerHTML = '<p class="text-warning"><i class="bi bi-exclamation-circle"></i> No test cases defined for this problem.</p>';
             document.getElementById('tests-tab').click();
             return;
@@ -413,9 +422,14 @@
         let failedTests = 0;
         let resultsHtml = '';
 
+        function normalizeOutput(s) {
+            if (s === null || s === undefined) return '';
+            return String(s).replace(/\r/g, '').trim();
+        }
+
         for (let i = 0; i < testCases.length; i++) {
             const testCase = testCases[i];
-            
+
             try {
                 const response = await fetch('@Url.Action("ExecuteCodeWithPiston", "Problemes")', {
                     method: 'POST',
@@ -431,9 +445,19 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    const actualOutput = (result.stdout || result.output || '').trim();
-                    const expectedOutput = (testCase.expected || '').trim();
-                    
+                    let actualOutput = normalizeOutput(result.stdout || result.output || '');
+                    let expectedOutput = normalizeOutput(testCase.expected || '');
+
+                    // Try to compare as JSON if both look like JSON
+                    try {
+                        const aParsed = JSON.parse(actualOutput);
+                        const eParsed = JSON.parse(expectedOutput);
+                        actualOutput = JSON.stringify(aParsed);
+                        expectedOutput = JSON.stringify(eParsed);
+                    } catch (e) {
+                        // Not JSON - leave as strings
+                    }
+
                     if (actualOutput === expectedOutput) {
                         passedTests++;
                         resultsHtml += `<div class="test-pass"><i class="bi bi-check-circle-fill"></i> <strong>Test ${i + 1}:</strong> PASSED</div>`;
