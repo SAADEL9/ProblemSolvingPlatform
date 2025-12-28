@@ -198,11 +198,11 @@ namespace ProblemSolvingPlatform.Controllers
                     ? languageMap[request.Language.ToLower()]
                     : "python3";
 
-                var payload = new
+                var payload = new OneCompilerPayload
                 {
-                    language = language,
-                    code = request.Code,
-                    stdin = request.Input ?? ""
+                    Language = language,
+                    Code = request.Code,
+                    Stdin = request.Input ?? ""
                 };
 
                 var content = new StringContent(
@@ -302,20 +302,20 @@ namespace ProblemSolvingPlatform.Controllers
 
                 var result = await _pistonService.ExecuteCodeAsync(pistonRequest);
 
-                return Ok(new
+                return Ok(new PistonExecutionResponse
                 {
-                    language = result.Language,
-                    version = result.Version,
-                    output = result.Run.Output,
-                    stdout = result.Run.Stdout,
-                    stderr = result.Run.Stderr,
-                    exitCode = result.Run.Code,
-                    compile = result.Compile != null ? new
+                    Language = result.Language,
+                    Version = result.Version,
+                    Output = result.Run.Output,
+                    Stdout = result.Run.Stdout,
+                    Stderr = result.Run.Stderr,
+                    ExitCode = result.Run.Code,
+                    Compile = result.Compile != null ? new PistonCompileResult
                     {
-                        output = result.Compile.Output,
-                        stdout = result.Compile.Stdout,
-                        stderr = result.Compile.Stderr,
-                        exitCode = result.Compile.Code
+                        Output = result.Compile.Output,
+                        Stdout = result.Compile.Stdout,
+                        Stderr = result.Compile.Stderr,
+                        ExitCode = result.Compile.Code
                     } : null
                 });
             }
@@ -357,11 +357,11 @@ namespace ProblemSolvingPlatform.Controllers
                     try
                     {
                         var parsed = JsonSerializer.Deserialize<object>(output);
-                        return Ok(new { results = parsed });
+                        return Ok(new TestResultsResponse { Results = parsed });
                     }
                     catch
                     {
-                        return Ok(new { raw = output });
+                        return Ok(new TestResultsResponse { Raw = output });
                     }
                 }
 
@@ -374,7 +374,7 @@ namespace ProblemSolvingPlatform.Controllers
                 };
 
                 var fallbackRes = await _pistonService.ExecuteCodeAsync(fallbackReq);
-                return Ok(new { output = fallbackRes?.Run?.Output ?? fallbackRes?.Run?.Stdout ?? string.Empty });
+                return Ok(new TestResultsResponse { Output = fallbackRes?.Run?.Output ?? fallbackRes?.Run?.Stdout ?? string.Empty });
             }
             catch (Exception ex)
             {
@@ -497,11 +497,11 @@ namespace ProblemSolvingPlatform.Controllers
                                 bool tcPassed = string.Equals(actualNorm, expectedNorm, StringComparison.Ordinal);
                                 if (tcPassed) passedCount++;
                                 
-                                checkResults.Add(new { 
-                                    testCase = i + 1, 
-                                    passed = tcPassed, 
-                                    expected = expectedRaw, 
-                                    actual = results[i].Output 
+                                checkResults.Add(new TestCaseCheckResult { 
+                                    TestCase = i + 1, 
+                                    Passed = tcPassed, 
+                                    Expected = expectedRaw, 
+                                    Actual = results[i].Output 
                                 });
                             }
                         }
@@ -522,7 +522,7 @@ namespace ProblemSolvingPlatform.Controllers
                     bool tcPassed = string.Equals(actualNorm, expectedNorm, StringComparison.Ordinal);
                     if (tcPassed) passedCount = 1;
 
-                    checkResults.Add(new { testCase = 1, passed = tcPassed, expected = expectedRaw, actual = rawOutput });
+                    checkResults.Add(new TestCaseCheckResult { TestCase = 1, Passed = tcPassed, Expected = expectedRaw, Actual = rawOutput });
                 }
 
                 overallPassed = passedCount == testCases.Count;
@@ -783,5 +783,69 @@ namespace ProblemSolvingPlatform.Controllers
         public int ProblemId { get; set; }
         public string? Code { get; set; }
         public string? Language { get; set; }
+    }
+
+    public class OneCompilerPayload
+    {
+        [JsonPropertyName("language")]
+        public string? Language { get; set; }
+        
+        [JsonPropertyName("code")]
+        public string? Code { get; set; }
+        
+        [JsonPropertyName("stdin")]
+        public string? Stdin { get; set; }
+    }
+
+    public class PistonExecutionResponse
+    {
+        [JsonPropertyName("language")]
+        public string? Language { get; set; }
+        [JsonPropertyName("version")]
+        public string? Version { get; set; }
+        [JsonPropertyName("output")]
+        public string? Output { get; set; }
+        [JsonPropertyName("stdout")]
+        public string? Stdout { get; set; }
+        [JsonPropertyName("stderr")]
+        public string? Stderr { get; set; }
+        [JsonPropertyName("exitCode")]
+        public int? ExitCode { get; set; }
+        [JsonPropertyName("compile")]
+        public PistonCompileResult? Compile { get; set; }
+    }
+
+    public class PistonCompileResult
+    {
+        [JsonPropertyName("output")]
+        public string? Output { get; set; }
+        [JsonPropertyName("stdout")]
+        public string? Stdout { get; set; }
+        [JsonPropertyName("stderr")]
+        public string? Stderr { get; set; }
+        [JsonPropertyName("exitCode")]
+        public int? ExitCode { get; set; }
+    }
+
+    public class TestCaseCheckResult
+    {
+        [JsonPropertyName("testCase")]
+        public int TestCase { get; set; }
+        [JsonPropertyName("passed")]
+        public bool Passed { get; set; }
+        [JsonPropertyName("expected")]
+        public string? Expected { get; set; }
+        [JsonPropertyName("actual")]
+        public object? Actual { get; set; }
+    }
+
+    public class TestResultsResponse
+    {
+        [JsonPropertyName("results")]
+        public object? Results { get; set; }
+        [JsonPropertyName("raw")]
+        public string? Raw { get; set; }
+        [JsonPropertyName("output")]
+        public string? Output { get; set; }
     }
 }

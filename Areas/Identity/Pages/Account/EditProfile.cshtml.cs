@@ -22,14 +22,20 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
     public class EditProfileModel : PageModel
     {
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ProblemSolvingPlatformContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<EditProfileModel> _logger;
 
-        [ActivatorUtilitiesConstructor]
-        public EditProfileModel(UserManager<User> userManager, ProblemSolvingPlatformContext context, IWebHostEnvironment env, ILogger<EditProfileModel> logger)
+        public EditProfileModel(
+            UserManager<User> userManager, 
+            SignInManager<User> signInManager,
+            ProblemSolvingPlatformContext context, 
+            IWebHostEnvironment env, 
+            ILogger<EditProfileModel> logger)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
             _context = context;
             _env = env;
             _logger = logger;
@@ -94,12 +100,11 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                     return Page();
                 }
 
-                // Update user properties on the Identity user instance
+                // Update user properties
                 user.FirstName = Input.FirstName;
                 user.LastName = Input.LastName;
                 user.PhoneNumber = Input.PhoneNumber;
 
-                string? newFileRelative = null;
                 string? newFileFullPath = null;
 
                 // Handle profile image upload
@@ -122,16 +127,25 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                         return Page();
                     }
 
-                    // Prepare directory
-                    var uploadsFolder = Path.Combine(_env.WebRootPath ?? "wwwroot", "uploads", "profiles");
-                    if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+                    // Robust path handling
+                    var webRoot = _env.WebRootPath;
+                    if (string.IsNullOrEmpty(webRoot))
+                    {
+                        webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                    }
 
-                    // Delete old file if exists and is under uploads/profiles
+                    var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
+                    // Delete old file if exists (optional, catch errors)
                     if (!string.IsNullOrEmpty(user.ProfilePicture) && user.ProfilePicture.StartsWith("/uploads/profiles/", StringComparison.OrdinalIgnoreCase))
                     {
                         try
                         {
-                            var oldPath = Path.Combine(_env.WebRootPath ?? "wwwroot", user.ProfilePicture.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                            var oldPath = Path.Combine(webRoot, user.ProfilePicture.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                             if (System.IO.File.Exists(oldPath))
                             {
                                 System.IO.File.Delete(oldPath);
@@ -139,61 +153,41 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Failed deleting old profile image");
+                            _logger.LogWarning(ex, "Could not delete old profile picture: {Path}", user.ProfilePicture);
                         }
                     }
 
                     var fileName = Guid.NewGuid().ToString("N") + ext;
                     var fullPath = Path.Combine(uploadsFolder, fileName);
+                    newFileFullPath = fullPath;
 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
                         await ProfileImage.CopyToAsync(stream);
                     }
 
-                    newFileRelative = "/uploads/profiles/" + fileName;
-                    newFileFullPath = fullPath;
-
-                    // Tentatively set
-                    user.ProfilePicture = newFileRelative;
+                    user.ProfilePicture = "/uploads/profiles/" + fileName;
                 }
 
+                _logger.LogInformation("Attempting to update user: {UserId}", user.Id);
                 var result = await _userManager.UpdateAsync(user);
 
                 if (result.Succeeded)
                 {
-                    // Ensure EF context reflects changes (some stores may require explicit save)
-                    try
-                    {
-                        _context.Users.Update(user);
-                        await _context.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        // If EF save fails, roll back uploaded file
-                        if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
-                        {
-                            try { System.IO.File.Delete(newFileFullPath); } catch { }
-                        }
-
-                        _logger.LogError(ex, "EF SaveChanges failed after updating user profile.");
-                        TempData["ErrorMessage"] = "Saved identity changes but failed to persist to DB.";
-                        return RedirectToPage("./Profile");
-                    }
-
+                    _logger.LogInformation("User update succeeded. Refreshing sign-in.");
+                    await _signInManager.RefreshSignInAsync(user);
+                    
                     TempData["SuccessMessage"] = "Your profile has been updated successfully!";
                     return RedirectToPage("./Profile");
                 }
 
-                // If update failed, delete uploaded file to avoid orphan
+                _logger.LogError("User update failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+
+                // If UpdateAsync failed, cleanup new file and show errors
                 if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
                 {
                     try { System.IO.File.Delete(newFileFullPath); } catch { }
                 }
-
-                // Surface identity update errors
-                var aggregated = string.Join("; ", result.Errors.Select(e => e.Description));
-                TempData["ErrorMessage"] = "Failed to update profile: " + aggregated;
 
                 foreach (var error in result.Errors)
                 {
@@ -204,9 +198,8 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
             }
             catch (Exception ex)
             {
-                // Log and show user-friendly message instead of letting app crash
-                _logger.LogError(ex, "Unexpected error in EditProfile OnPostAsync");
-                TempData["ErrorMessage"] = "An unexpected error occurred while saving your profile. Please try again later.";
+                _logger.LogError(ex, "Critical error in EditProfile OnPostAsync");
+                ModelState.AddModelError(string.Empty, "An internal error occurred. Your changes might not have been saved.");
                 return Page();
             }
         }

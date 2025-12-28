@@ -1,45 +1,126 @@
 ﻿@model IEnumerable<ProblemSolvingPlatform.Models.Classement>
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ProblemSolvingPlatform.Models.User> UserManager
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Global Leaderboard";
+    var isAdmin = User.IsInRole("Admin");
 }
 
-<h1>Index</h1>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold text-white mb-2">Global Leaderboard</h1>
+        <p class="text-white-50">Top performers in the Problem Solving Platform</p>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Score)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Rang)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Score)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rang)
-            </td>
-           
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ClassementId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ClassementId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ClassementId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    @if (isAdmin)
+    {
+        <div class="mb-4 text-end">
+            <a asp-action="Create" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-circle me-1"></i> Create New Entry
+            </a>
+        </div>
+    }
+
+    <div class="card bg-dark border-secondary shadow-lg overflow-hidden" style="border-radius: 1rem;">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0 align-middle">
+                <thead class="bg-black border-bottom border-secondary">
+                    <tr>
+                        <th class="ps-4 py-3 text-secondary text-uppercase small fw-bold" style="width: 100px;">Rank</th>
+                        <th class="py-3 text-secondary text-uppercase small fw-bold">User</th>
+                        <th class="py-3 text-secondary text-uppercase small fw-bold text-center">Score</th>
+                        <th class="py-3 text-secondary text-uppercase small fw-bold text-center">Problems</th>
+                        @if (isAdmin)
+                        {
+                            <th class="pe-4 py-3 text-secondary text-uppercase small fw-bold text-end">Actions</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderBy(m => m.Rang))
+                    {
+                        <tr class="border-bottom border-secondary" style="transition: background-color 0.2s;">
+                            <td class="ps-4">
+                                @if (item.Rang == 1)
+                                {
+                                    <div class="rank-badge rank-1"><i class="bi bi-trophy-fill"></i></div>
+                                }
+                                else if (item.Rang == 2)
+                                {
+                                    <div class="rank-badge rank-2 text-silver"><i class="bi bi-trophy-fill"></i></div>
+                                }
+                                else if (item.Rang == 3)
+                                {
+                                    <div class="rank-badge rank-3 text-bronze"><i class="bi bi-trophy-fill"></i></div>
+                                }
+                                else
+                                {
+                                    <span class="ms-2 fw-bold text-white-50">#@item.Rang</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @{
+                                        var profilePic = item.User?.ProfilePicture ?? "/images/default-profile.png";
+                                    }
+                                    <img src="@profilePic" class="rounded-circle me-3 border border-secondary shadow-sm" width="40" height="40" alt="Avatar" style="object-fit: cover;">
+                                    <div>
+                                        <span class="d-block text-white fw-bold">@(item.User?.FirstName + " " + item.User?.LastName)</span>
+                                        <small class="text-white-50">@@@(item.User?.UserName ?? "anonymous")</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-primary rounded-pill px-3 py-2 fs-6">
+                                    <i class="bi bi-star-fill me-1 text-warning"></i> @item.Score
+                                </span>
+                            </td>
+                            <td class="text-center text-white-50">
+                                <span class="fw-bold text-white">@item.ProblemsSolved</span>
+                            </td>
+                            @if (isAdmin)
+                            {
+                                <td class="pe-4 text-end">
+                                    <div class="btn-group">
+                                        <a asp-action="Edit" asp-route-id="@item.ClassementId" class="btn btn-sm btn-outline-info border-0 mx-1 rounded">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.ClassementId" class="btn btn-sm btn-outline-light border-0 mx-1 rounded">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.ClassementId" class="btn btn-sm btn-outline-danger border-0 mx-1 rounded">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1.1rem;
+    }
+    .rank-1 { color: #ffd700; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.2); }
+    .rank-2 { color: #c0c0c0; background: rgba(192, 192, 192, 0.1); border: 1px solid rgba(192, 192, 192, 0.2); }
+    .rank-3 { color: #cd7f32; background: rgba(205, 127, 50, 0.1); border: 1px solid rgba(205, 127, 50, 0.2); }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+
+    .text-silver { color: #c0c0c0; }
+    .text-bronze { color: #cd7f32; }
+</style>

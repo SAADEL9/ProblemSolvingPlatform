@@ -4,37 +4,46 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-white mb-0">Create Entry</h2>
+                <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+            </div>
 
-<h4>Classement</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <select asp-for="UserId" class ="form-control" asp-items="ViewBag.UserId"></select>
+            <div class="card bg-dark border-secondary shadow-lg" style="border-radius: 1.5rem;">
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="UserId" class="form-label text-white-50 small text-uppercase fw-bold">Select User</label>
+                            <select asp-for="UserId" class="form-select bg-black border-secondary text-white p-3" asp-items="ViewBag.UserId" style="border-radius: 0.8rem;"></select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Score" class="form-label text-white-50 small text-uppercase fw-bold">Score</label>
+                            <input asp-for="Score" class="form-control bg-black border-secondary text-white p-3" style="border-radius: 0.8rem;" />
+                            <span asp-validation-for="Score" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <div class="mb-5">
+                            <label asp-for="Rang" class="form-label text-white-50 small text-uppercase fw-bold">Rank</label>
+                            <input asp-for="Rang" class="form-control bg-black border-secondary text-white p-3" style="border-radius: 0.8rem;" />
+                            <span asp-validation-for="Rang" class="text-danger small mt-1"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">
+                            <i class="bi bi-plus-circle me-1"></i> Create Ranking
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Score" class="control-label"></label>
-                <input asp-for="Score" class="form-control" />
-                <span asp-validation-for="Score" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Rang" class="control-label"></label>
-                <input asp-for="Rang" class="form-control" />
-                <span asp-validation-for="Rang" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
