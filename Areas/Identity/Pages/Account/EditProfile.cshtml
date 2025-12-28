@@ -28,8 +28,21 @@
                 </div>
             }
 
+            <!-- Error Message -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-x-circle-fill"></i> @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
             <!-- Edit Form -->
-            <form method="post" class="needs-validation" novalidate>
+            <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" id="validationSummary"></div>
+
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-white border-bottom">
                         <h5 class="mb-0">
@@ -38,40 +51,66 @@
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="firstName" class="form-label fw-semibold">First Name</label>
-                                <input asp-for="Input.FirstName" class="form-control form-control-lg" placeholder="Enter your first name" />
-                                <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="lastName" class="form-label fw-semibold">Last Name</label>
-                                <input asp-for="Input.LastName" class="form-control form-control-lg" placeholder="Enter your last name" />
-                                <span asp-validation-for="Input.LastName" class="text-danger small"></span>
-                            </div>
-                        </div>
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    @if (!string.IsNullOrEmpty(Model.CurrentUser.ProfilePicture))
+                                    {
+                                        <img id="profilePreview" src="@Model.CurrentUser.ProfilePicture" alt="Profile" class="rounded-circle" style="width:140px; height:140px; object-fit:cover; border:4px solid #f0f0f0;" />
+                                    }
+                                    else
+                                    {
+                                        <div id="profilePreview" class="rounded-circle d-flex align-items-center justify-content-center" style="width:140px; height:140px; object-fit:cover; border:4px solid #f0f0f0; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; font-size:2.5rem;">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                    }
+                                </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="email" class="form-label fw-semibold">Email Address</label>
-                                <input type="email" class="form-control form-control-lg" value="@Model.CurrentUser.Email" disabled>
-                                <small class="text-muted">Your email cannot be changed</small>
+                                <div>
+                                    <label class="form-label fw-semibold">Profile Picture</label>
+                                    <input asp-for="ProfileImage" type="file" accept="image/*" class="form-control form-control-sm" onchange="previewImage(event)" />
+                                    <span asp-validation-for="ProfileImage" class="text-danger small"></span>
+                                    <small class="text-muted d-block mt-2">Max 2 MB. Formats: jpg, jpeg, png, gif.</small>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
-                                <input asp-for="Input.PhoneNumber" type="tel" class="form-control form-control-lg" placeholder="+1 (555) 000-0000" />
-                                <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
-                            </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label for="username" class="form-label fw-semibold">Username</label>
-                                <input type="text" class="form-control form-control-lg" value="@Model.CurrentUser.UserName" disabled>
-                                <small class="text-muted">Your username cannot be changed</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="registrationDate" class="form-label fw-semibold">Member Since</label>
-                                <input type="text" class="form-control form-control-lg" value="@Model.CurrentUser.RegistrationDate.ToString("MMMM dd, yyyy")" disabled>
+                            <div class="col-md-8">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label fw-semibold">First Name</label>
+                                        <input asp-for="Input.FirstName" class="form-control form-control-lg" placeholder="Enter your first name" />
+                                        <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                                        <input asp-for="Input.LastName" class="form-control form-control-lg" placeholder="Enter your last name" />
+                                        <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label fw-semibold">Email Address</label>
+                                        <input type="email" class="form-control form-control-lg" value="@Model.CurrentUser.Email" disabled>
+                                        <small class="text-muted">Your email cannot be changed</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                        <input asp-for="Input.PhoneNumber" type="tel" class="form-control form-control-lg" placeholder="+1 (555) 000-0000" />
+                                        <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="username" class="form-label fw-semibold">Username</label>
+                                        <input type="text" class="form-control form-control-lg" value="@Model.CurrentUser.UserName" disabled>
+                                        <small class="text-muted">Your username cannot be changed</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="registrationDate" class="form-label fw-semibold">Member Since</label>
+                                        <input type="text" class="form-control form-control-lg" value="@Model.CurrentUser.RegistrationDate.ToString("MMMM dd, yyyy")" disabled>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -183,10 +222,46 @@
     .alert {
         border-radius: 0.5rem;
     }
+
+    #profilePreview img {
+        width: 140px;
+        height: 140px;
+        object-fit: cover;
+    }
 </style>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        // Display server validation summary if any
+        (function() {
+            const summary = document.querySelector('[asp-validation-summary]');
+            if (!summary) return;
+            const errors = document.querySelectorAll('.validation-summary-errors, .field-validation-error');
+            if (errors.length > 0) {
+                summary.classList.remove('d-none');
+                // Fill summary with ModelState errors (handled by tag helpers on server)
+            }
+        })();
+
+        function previewImage(e) {
+            const input = e.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (ev) {
+                    const preview = document.getElementById('profilePreview');
+                    if (preview.tagName === 'IMG') {
+                        preview.src = ev.target.result;
+                    } else {
+                        // replace inner div with img
+                        preview.outerHTML = `<img id="profilePreview" src="${ev.target.result}" alt="Profile" class="rounded-circle" style="width:140px; height:140px; object-fit:cover; border:4px solid #f0f0f0;" />`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
 }

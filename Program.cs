@@ -3,8 +3,44 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using ProblemSolvingPlatform.Models;
 using ProblemSolvingPlatform.Services;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Create a logger factory early to use in global handlers
+using var loggerFactory = LoggerFactory.Create(lb =>
+{
+    lb.AddConsole();
+    lb.AddDebug();
+});
+var globalLogger = loggerFactory.CreateLogger("Global");
+
+// Global unhandled exception handlers - log to console/file
+AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+{
+    try
+    {
+        globalLogger.LogCritical(e.ExceptionObject as Exception, "Unhandled exception (AppDomain)");
+    }
+    catch { }
+};
+
+TaskScheduler.UnobservedTaskException += (s, e) =>
+{
+    try
+    {
+        globalLogger.LogError(e.Exception, "Unobserved task exception");
+    }
+    catch { }
+};
+
+// Configure Kestrel limits (allow larger uploads if needed)
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // Increase request body size to 50 MB
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024; // 50 MB
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -16,6 +52,12 @@ builder.Services.AddDbContext<ProblemSolvingPlatformContext>(options =>
         builder.Configuration.GetConnectionString("ProblemSolvingPlatformContext")
     )
 );
+
+// Configure form options for multipart uploads
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 50 * 1024 * 1024; // 50 MB
+});
 
 // Add HttpClientFactory for API calls
 builder.Services.AddHttpClient();
@@ -69,7 +111,12 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-if (!app.Environment.IsDevelopment())
+// Show developer exception page in development for detailed errors
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -107,26 +154,15 @@ using (var scope = app.Services.CreateScope())
     {
         await roleManager.CreateAsync(new IdentityRole<int> { Name = "User" });
     }
-
-    // Optionally create a default admin user (uncomment if needed)
-    // var adminUser = await userManager.FindByEmailAsync("admin@example.com");
-    // if (adminUser == null)
-    // {
-    //     var newAdmin = new User 
-    //     { 
-    //         UserName = "admin",
-    //         Email = "admin@example.com",
-    //         FirstName = "Admin",
-    //         LastName = "User",
-    //         RegistrationDate = DateTime.Now,
-    //         IsActive = true
-    //     };
-    //     var result = await userManager.CreateAsync(newAdmin, "Admin123!");
-    //     if (result.Succeeded)
-    //     {
-    //         await userManager.AddToRoleAsync(newAdmin, "Admin");
-    //     }
-    // }
 }
 
-app.Run();
+// Wrap Run in try/catch to log fatal errors
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    globalLogger.LogCritical(ex, "Host terminated unexpectedly");
+    throw;
+}

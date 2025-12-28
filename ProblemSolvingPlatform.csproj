@@ -7,6 +7,8 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     <BuildCompressedStaticWebAssets>false</BuildCompressedStaticWebAssets>
     <CompressStaticWebAssets>false</CompressStaticWebAssets>
+    <!-- Exclude temporary editor / OS temp files from the project build to avoid stray files under AppData\Local\Temp being compiled -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);**\AppData\Local\Temp\**\*.*</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

@@ -63,14 +63,17 @@ public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, Ide
             entity.HasKey(e => e.ProbId).HasName("PK__Probleme__078036D7C651FF26");
             entity.ToTable("Probleme");
             entity.Property(e => e.Descr)
-                .HasMaxLength(255)
                 .HasColumnName("descr");
             entity.Property(e => e.Difficulte)
                 .HasMaxLength(50)
                 .HasColumnName("difficulte");
             entity.Property(e => e.Title)
-                .HasMaxLength(50)
+                .HasMaxLength(255)
                 .HasColumnName("title");
+            entity.Property(e => e.FunctionTemplate);
+            entity.Property(e => e.TestCases);
+            entity.Property(e => e.Language).HasMaxLength(50).HasDefaultValue("python");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
         });
 
         modelBuilder.Entity<Soumission>(entity =>
@@ -78,7 +81,6 @@ public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, Ide
             entity.HasKey(e => e.SoumissionId).HasName("PK__Soumissi__8749F9FFA169F861");
             entity.ToTable("Soumission");
             entity.Property(e => e.Code)
-                .HasMaxLength(100)
                 .HasColumnName("code");
             entity.Property(e => e.Langage)
                 .HasMaxLength(50)
@@ -86,6 +88,14 @@ public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, Ide
             entity.Property(e => e.Probleme)
                 .HasMaxLength(255)
                 .HasColumnName("probleme");
+            
+            // New fields
+            entity.Property(e => e.IsPassed);
+            entity.Property(e => e.TestsPassed);
+            entity.Property(e => e.TestsTotal);
+            entity.Property(e => e.PointsEarned);
+            entity.Property(e => e.SubmittedAt).HasDefaultValueSql("(getdate())");
+
             entity.HasOne(d => d.User).WithMany(p => p.Soumissions)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_sommision_User");
@@ -93,17 +103,28 @@ public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, Ide
 
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable("Users"); // Map to the table expected by the foreign key
+            entity.Property(e => e.Id).HasColumnName("UserId"); // Map property Id to UserId column
+            
             entity.HasKey(e => e.Id).HasName("PK__Users__1788CC4C9A3C4F25");
             entity.HasIndex(e => e.Email, "UQ__Users__A9D1053420F85CE3").IsUnique();
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FirstName).HasMaxLength(50);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastName).HasMaxLength(50);
-            entity.Property(e => e.UserName).HasMaxLength(50);
+            entity.Property(e => e.UserName).HasMaxLength(128); // Increased from 50 to match standard identity
             entity.Property(e => e.RegistrationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
         });
+
+        // Ensure other Identity tables follow default or explicit mapping if modified
+        modelBuilder.Entity<IdentityUserRole<int>>(entity => entity.ToTable("AspNetUserRoles"));
+        modelBuilder.Entity<IdentityUserClaim<int>>(entity => entity.ToTable("AspNetUserClaims"));
+        modelBuilder.Entity<IdentityUserLogin<int>>(entity => entity.ToTable("AspNetUserLogins"));
+        modelBuilder.Entity<IdentityUserToken<int>>(entity => entity.ToTable("AspNetUserTokens"));
+        modelBuilder.Entity<IdentityRole<int>>(entity => entity.ToTable("AspNetRoles"));
+        modelBuilder.Entity<IdentityRoleClaim<int>>(entity => entity.ToTable("AspNetRoleClaims"));
 
         OnModelCreatingPartial(modelBuilder);
     }

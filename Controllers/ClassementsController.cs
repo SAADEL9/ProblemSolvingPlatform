@@ -47,7 +47,8 @@ namespace ProblemSolvingPlatform.Controllers
         // GET: Classements/Create
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "UserId");
+            // Use Identity user key 'Id' and display 'UserName' instead of non-existing 'UserId'
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName");
             return View();
         }
 
@@ -64,7 +65,7 @@ namespace ProblemSolvingPlatform.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "UserId", classement.UserId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", classement.UserId);
             return View(classement);
         }
 
@@ -81,7 +82,7 @@ namespace ProblemSolvingPlatform.Controllers
             {
                 return NotFound();
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "UserId", classement.UserId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", classement.UserId);
             return View(classement);
         }
 
@@ -117,7 +118,7 @@ namespace ProblemSolvingPlatform.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["UserId"] = new SelectList(_context.Users, "UserId", "UserId", classement.UserId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", classement.UserId);
             return View(classement);
         }
 

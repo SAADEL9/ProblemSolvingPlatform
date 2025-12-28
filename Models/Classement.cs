@@ -13,5 +13,12 @@ public partial class Classement
 
     public int Rang { get; set; }
 
+    // New fields for tracking progress
+    public int TotalPoints { get; set; } = 0;
+
+    public int ProblemsSolved { get; set; } = 0;
+
+    public DateTime? LastUpdated { get; set; }
+
     public virtual User User { get; set; } = null!;
 }
