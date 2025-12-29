@@ -110,96 +110,175 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                 // Handle profile image upload
                 if (ProfileImage != null && ProfileImage.Length > 0)
                 {
-                    // Validate file type
-                    var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    var ext = Path.GetExtension(ProfileImage.FileName).ToLowerInvariant();
-                    if (!allowed.Contains(ext))
+                    try
                     {
-                        ModelState.AddModelError("ProfileImage", "Invalid image format. Allowed: jpg, jpeg, png, gif.");
-                        return Page();
-                    }
+                        _logger.LogInformation("Processing profile image upload: {FileName}", ProfileImage.FileName);
 
-                    // Limit size to 2 MB
-                    const long maxSize = 2 * 1024 * 1024;
-                    if (ProfileImage.Length > maxSize)
-                    {
-                        ModelState.AddModelError("ProfileImage", "Image size must be 2 MB or less.");
-                        return Page();
-                    }
-
-                    // Robust path handling
-                    var webRoot = _env.WebRootPath;
-                    if (string.IsNullOrEmpty(webRoot))
-                    {
-                        webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                    }
-
-                    var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    // Delete old file if exists (optional, catch errors)
-                    if (!string.IsNullOrEmpty(user.ProfilePicture) && user.ProfilePicture.StartsWith("/uploads/profiles/", StringComparison.OrdinalIgnoreCase))
-                    {
-                        try
+                        // Validate file type
+                        var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                        var ext = Path.GetExtension(ProfileImage.FileName).ToLowerInvariant();
+                        if (!allowed.Contains(ext))
                         {
-                            var oldPath = Path.Combine(webRoot, user.ProfilePicture.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-                            if (System.IO.File.Exists(oldPath))
+                            _logger.LogWarning("Invalid file extension: {Extension}", ext);
+                            ModelState.AddModelError("ProfileImage", "Invalid image format. Allowed: jpg, jpeg, png, gif.");
+                            return Page();
+                        }
+
+                        // Limit size to 2 MB
+                        const long maxSize = 2 * 1024 * 1024;
+                        if (ProfileImage.Length > maxSize)
+                        {
+                            _logger.LogWarning("File too large: {Size} bytes", ProfileImage.Length);
+                            ModelState.AddModelError("ProfileImage", "Image size must be 2 MB or less.");
+                            return Page();
+                        }
+
+                        // Robust path handling
+                        var webRoot = _env.WebRootPath;
+                        if (string.IsNullOrEmpty(webRoot))
+                        {
+                            webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                        }
+
+                        var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
+                        try 
+                        {
+                            if (!Directory.Exists(uploadsFolder))
                             {
-                                System.IO.File.Delete(oldPath);
+                                _logger.LogInformation("Creating uploads directory: {Path}", uploadsFolder);
+                                Directory.CreateDirectory(uploadsFolder);
                             }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Could not delete old profile picture: {Path}", user.ProfilePicture);
+                            _logger.LogError(ex, "Failed to create uploads directory");
+                            ModelState.AddModelError(string.Empty, "Failed to save image. Server configuration error.");
+                            return Page();
+                        }
+
+                        // Delete old file if exists
+                        if (!string.IsNullOrEmpty(user.ProfilePicture))
+                        {
+                            try
+                            {
+                                // Only try to delete if it's an uploaded file (not a default or external URL)
+                                if (user.ProfilePicture.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var oldPath = Path.Combine(webRoot, user.ProfilePicture.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                                    if (System.IO.File.Exists(oldPath))
+                                    {
+                                        _logger.LogInformation("Deleting old profile picture: {Path}", oldPath);
+                                        System.IO.File.Delete(oldPath);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Could not delete old profile picture: {Path}", user.ProfilePicture);
+                                // Not a fatal error, continue
+                            }
+                        }
+
+                        var fileName = Guid.NewGuid().ToString("N") + ext;
+                        var fullPath = Path.Combine(uploadsFolder, fileName);
+                        newFileFullPath = fullPath;
+
+                        try
+                        {
+                            _logger.LogInformation("Saving new profile picture to: {Path}", fullPath);
+                            using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            {
+                                await ProfileImage.CopyToAsync(stream);
+                                await stream.FlushAsync();
+                                stream.Dispose();
+                            }
+                            
+                            // Ensure the file was actually written
+                            if (!System.IO.File.Exists(fullPath))
+                            {
+                                throw new Exception("File was not created successfully");
+                            }
+                            
+                            user.ProfilePicture = "/uploads/profiles/" + fileName;
+                            _logger.LogInformation("New profile picture path saved to user: {Path}", user.ProfilePicture);
+                        }
+                        catch (IOException ioEx)
+                        {
+                            _logger.LogError(ioEx, "IO error while writing file to disk: {Path}", fullPath);
+                            ModelState.AddModelError("ProfileImage", "Failed to save the image. The file may be in use or the disk is full.");
+                            return Page();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to write file to disk: {Path}", fullPath);
+                            ModelState.AddModelError("ProfileImage", "Failed to save the image to the server: " + ex.Message);
+                            return Page();
                         }
                     }
-
-                    var fileName = Guid.NewGuid().ToString("N") + ext;
-                    var fullPath = Path.Combine(uploadsFolder, fileName);
-                    newFileFullPath = fullPath;
-
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
+                    catch (Exception ex)
                     {
-                        await ProfileImage.CopyToAsync(stream);
+                        _logger.LogError(ex, "Unexpected error during profile image processing");
+                        ModelState.AddModelError("ProfileImage", "An unexpected error occurred while processing the image.");
+                        return Page();
+                    }
+                }
+
+                try
+                {
+                    _logger.LogInformation("Attempting to update user: {UserId}", user.Id);
+                    var result = await _userManager.UpdateAsync(user);
+
+                    if (result.Succeeded)
+                    {
+                        _logger.LogInformation("User update succeeded. Refreshing sign-in.");
+                        await _signInManager.RefreshSignInAsync(user);
+                        
+                        TempData["SuccessMessage"] = "Your profile has been updated successfully!";
+                        return RedirectToPage("./Profile");
                     }
 
-                    user.ProfilePicture = "/uploads/profiles/" + fileName;
+                    _logger.LogError("User update failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+
+                    // If UpdateAsync failed, cleanup new file and show errors
+                    if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
+                    {
+                        try 
+                        { 
+                            _logger.LogInformation("Cleaning up file after failed update: {Path}", newFileFullPath);
+                            System.IO.File.Delete(newFileFullPath); 
+                        } 
+                        catch { }
+                    }
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, error.Description);
+                    }
+
+                    return Page();
                 }
-
-                _logger.LogInformation("Attempting to update user: {UserId}", user.Id);
-                var result = await _userManager.UpdateAsync(user);
-
-                if (result.Succeeded)
+                catch (Exception ex)
                 {
-                    _logger.LogInformation("User update succeeded. Refreshing sign-in.");
-                    await _signInManager.RefreshSignInAsync(user);
+                    _logger.LogError(ex, "Critical error during user update in EditProfile OnPostAsync");
+                    ModelState.AddModelError(string.Empty, "An internal error occurred while saving your profile. Please try again.");
                     
-                    TempData["SuccessMessage"] = "Your profile has been updated successfully!";
-                    return RedirectToPage("./Profile");
+                    // Cleanup new file if user update failed
+                    if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
+                    {
+                        try 
+                        { 
+                            System.IO.File.Delete(newFileFullPath); 
+                        } 
+                        catch { }
+                    }
+                    
+                    return Page();
                 }
-
-                _logger.LogError("User update failed: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
-
-                // If UpdateAsync failed, cleanup new file and show errors
-                if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
-                {
-                    try { System.IO.File.Delete(newFileFullPath); } catch { }
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-
-                return Page();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Critical error in EditProfile OnPostAsync");
-                ModelState.AddModelError(string.Empty, "An internal error occurred. Your changes might not have been saved.");
+                ModelState.AddModelError(string.Empty, "An internal error occurred while saving your profile.");
                 return Page();
             }
         }
