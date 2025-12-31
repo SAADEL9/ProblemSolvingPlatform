@@ -30,80 +30,82 @@
 </div>
 
 <div class="container py-5">
-    <div class="row g-4">
-        @if (Model.Any())
-        {
-            @foreach (var item in Model)
+    <div class="container">
+        <div class="row g-4">
+            @if (Model.Any())
             {
-                <div class="col-lg-6 col-xl-4">
-                    <div class="card bg-dark border-secondary h-100 problem-card shadow-sm" style="transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border-radius: 1rem;">
-                        <div class="card-body d-flex flex-column p-4">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <h5 class="card-title fw-bold text-white mb-0">
-                                    @Html.DisplayFor(modelItem => item.Title)
-                                </h5>
-                                <span class="badge rounded-pill
-                                    @(item.Difficulte == "Easy" ? "bg-success-subtle text-success border border-success" :
-                                      item.Difficulte == "Medium" ? "bg-warning-subtle text-warning border border-warning" :
-                                      "bg-danger-subtle text-danger border border-danger")" style="font-size: 0.75rem; padding: 0.5em 1em;">
-                                    @item.Difficulte
-                                </span>
-                            </div>
-
-                            <p class="text-white-50 flex-grow-1 mb-4" style="font-size: 0.95rem; line-height: 1.6;">
-                                @{
-                                    var description = item.Descr ?? "";
-                                    if (description.Length > 120)
-                                    {
-                                        @(description.Substring(0, 120) + "...")
+                @foreach (var item in Model)
+                {
+                    <div class="col-lg-6 col-xl-4">
+                        <div class="card bg-dark border-secondary h-100 problem-card shadow-sm" style="transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border-radius: 1rem;">
+                            <div class="card-body d-flex flex-column p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title fw-bold text-white mb-0">
+                                        @Html.DisplayFor(modelItem => item.Title)
+                                    </h5>
+                                    <span class="badge rounded-pill
+                                        @(item.Difficulte == "Easy" ? "bg-success-subtle text-success border border-success" :
+                                          item.Difficulte == "Medium" ? "bg-warning-subtle text-warning border border-warning" :
+                                          "bg-danger-subtle text-danger border border-danger")" style="font-size: 0.75rem; padding: 0.5em 1em;">
+                                        @item.Difficulte
+                                    </span>
+                                </div>
+    
+                                <p class="text-white-50 flex-grow-1 mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                                    @{
+                                        var description = item.Descr ?? "";
+                                        if (description.Length > 120)
+                                        {
+                                            @(description.Substring(0, 120) + "...")
+                                        }
+                                        else
+                                        {
+                                            @description
+                                        }
                                     }
-                                    else
+                                </p>
+    
+                                <div class="d-flex align-items-center mb-4 text-secondary small">
+                                    <span class="me-3"><i class="bi bi-hash me-1"></i> #@item.ProbId</span>
+                                    <span><i class="bi bi-person-check me-1"></i> 256 Solved</span>
+                                </div>
+    
+                                <div class="d-flex gap-2 mt-auto">
+                                    <a asp-action="Details" asp-route-id="@item.ProbId" class="btn btn-primary flex-grow-1 rounded-pill fw-bold">
+                                        <i class="bi bi-terminal me-1"></i> Solve Challenge
+                                    </a>
+                                    @if (isAdmin)
                                     {
-                                        @description
+                                        <a asp-action="Edit" asp-route-id="@item.ProbId" class="btn btn-outline-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.ProbId" class="btn btn-outline-danger rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
                                     }
-                                }
-                            </p>
-
-                            <div class="d-flex align-items-center mb-4 text-secondary small">
-                                <span class="me-3"><i class="bi bi-hash me-1"></i> #@item.ProbId</span>
-                                <span><i class="bi bi-person-check me-1"></i> 256 Solved</span>
-                            </div>
-
-                            <div class="d-flex gap-2 mt-auto">
-                                <a asp-action="Details" asp-route-id="@item.ProbId" class="btn btn-primary flex-grow-1 rounded-pill fw-bold">
-                                    <i class="bi bi-terminal me-1"></i> Solve Challenge
-                                </a>
-                                @if (isAdmin)
-                                {
-                                    <a asp-action="Edit" asp-route-id="@item.ProbId" class="btn btn-outline-secondary rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.ProbId" class="btn btn-outline-danger rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                }
+                                </div>
                             </div>
                         </div>
                     </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <div class="text-center py-5 rounded-4 bg-dark border border-secondary shadow-sm">
+                        <i class="bi bi-inbox text-secondary" style="font-size: 4rem;"></i>
+                        <h4 class="text-white mt-4">No Challenges Found</h4>
+                        <p class="text-white-50">Check back later or create a new challenge if you're an admin.</p>
+                        @if (isAdmin)
+                        {
+                            <a asp-action="Create" class="btn btn-primary mt-3 rounded-pill px-4">
+                                <i class="bi bi-plus-circle me-1"></i> Create First Problem
+                            </a>
+                        }
+                    </div>
                 </div>
             }
-        }
-        else
-        {
-            <div class="col-12">
-                <div class="text-center py-5 rounded-4 bg-dark border border-secondary shadow-sm">
-                    <i class="bi bi-inbox text-secondary" style="font-size: 4rem;"></i>
-                    <h4 class="text-white mt-4">No Challenges Found</h4>
-                    <p class="text-white-50">Check back later or create a new challenge if you're an admin.</p>
-                    @if (isAdmin)
-                    {
-                        <a asp-action="Create" class="btn btn-primary mt-3 rounded-pill px-4">
-                            <i class="bi bi-plus-circle me-1"></i> Create First Problem
-                        </a>
-                    }
-                </div>
-            </div>
-        }
+        </div>
     </div>
 </div>
 

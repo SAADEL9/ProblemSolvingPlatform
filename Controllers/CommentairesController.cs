@@ -18,6 +18,47 @@ namespace ProblemSolvingPlatform.Controllers
             _context = context;
         }
 
+        [HttpPost]
+        public async Task<IActionResult> PostComment(int probId, string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return BadRequest(new { error = "Comment content cannot be empty" });
+            }
+
+            var userName = User.Identity?.Name;
+            if (string.IsNullOrEmpty(userName))
+            {
+                return Unauthorized(new { error = "You must be logged in to comment" });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+            if (user == null)
+            {
+                return NotFound(new { error = "User not found" });
+            }
+
+            var comment = new Commentaire
+            {
+                UserId = user.Id,
+                Probleme = probId.ToString(),
+                Contenu = content,
+                DateCreation = DateTime.Now
+            };
+
+            _context.Commentaires.Add(comment);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                commentId = comment.CommentaireId,
+                userName = string.IsNullOrEmpty(user.FirstName) ? user.UserName : (user.FirstName + " " + user.LastName),
+                userProfilePic = user.ProfilePicture ?? "/images/default-profile.png",
+                date = comment.DateCreation.ToString("MMM dd, yyyy HH:mm"),
+                content = comment.Contenu
+            });
+        }
+
         // GET: Commentaires
         public async Task<IActionResult> Index()
         {

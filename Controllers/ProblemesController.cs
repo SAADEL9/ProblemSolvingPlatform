@@ -54,6 +54,15 @@ namespace ProblemSolvingPlatform.Controllers
                 return NotFound();
             }
 
+            // Load comments for this problem
+            var comments = await _context.Commentaires
+                .Include(c => c.User)
+                .Where(c => c.Probleme == id.ToString())
+                .OrderByDescending(c => c.DateCreation)
+                .ToListAsync();
+            
+            ViewBag.Comments = comments;
+
             return View(probleme);
         }
 
