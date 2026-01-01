@@ -116,6 +116,9 @@ public partial class ProblemSolvingPlatformContext : IdentityDbContext<User, Ide
             entity.Property(e => e.RegistrationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+
+            // Allow ProfilePicture to be long (data URIs) to avoid truncation issues
+            entity.Property(e => e.ProfilePicture).HasColumnType("nvarchar(max)");
         });
 
         // Ensure other Identity tables follow default or explicit mapping if modified

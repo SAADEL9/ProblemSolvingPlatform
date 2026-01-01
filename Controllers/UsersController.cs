@@ -62,14 +62,14 @@ namespace ProblemSolvingPlatform.Controllers
             {
                 user.UserName = user.Email;
                 user.RegistrationDate = DateTime.Now;
-                
+
                 var result = await _userManager.CreateAsync(user, password);
-                
+
                 if (result.Succeeded)
                 {
                     return RedirectToAction(nameof(Index));
                 }
-                
+
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError("", error.Description);
@@ -125,7 +125,7 @@ namespace ProblemSolvingPlatform.Controllers
                     existingUser.IsActive = user.IsActive;
 
                     var result = await _userManager.UpdateAsync(existingUser);
-                    
+
                     if (!result.Succeeded)
                     {
                         foreach (var error in result.Errors)

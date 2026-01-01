@@ -67,8 +67,8 @@
 
                                 <div>
                                     <label class="form-label fw-semibold">Profile Picture</label>
-                                    <input asp-for="ProfileImage" type="file" accept="image/*" class="form-control form-control-sm" onchange="previewImage(event)" />
-                                    <span asp-validation-for="ProfileImage" class="text-danger small"></span>
+                                    <input asp-for="ProfileImageFile" type="file" accept="image/*" class="form-control form-control-sm" onchange="previewImage(event)" />
+                                    <span asp-validation-for="ProfileImageFile" class="text-danger small"></span>
                                     <small class="text-muted d-block mt-2">Max 2 MB. Formats: jpg, jpeg, png, gif.</small>
                                 </div>
                             </div>
@@ -194,7 +194,7 @@
         border-color: rgba(255,255,255,0.1) !important;
         color: white;
     }
-    
+
     .card-header {
         background-color: rgba(0,0,0,0.2) !important;
         border-color: rgba(255,255,255,0.1) !important;
@@ -207,17 +207,17 @@
         color: white !important;
     }
 
-    .form-control:focus, .form-select:focus {
-        background-color: #1a1a1a !important;
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
-    }
+        .form-control:focus, .form-select:focus {
+            background-color: #1a1a1a !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+        }
 
-    .form-control:disabled,
-    .form-control[readonly] {
-        background-color: rgba(255,255,255,0.05) !important;
-        color: rgba(255,255,255,0.5) !important;
-    }
+        .form-control:disabled,
+        .form-control[readonly] {
+            background-color: rgba(255,255,255,0.05) !important;
+            color: rgba(255,255,255,0.5) !important;
+        }
 
     .form-label {
         margin-bottom: 0.5rem;

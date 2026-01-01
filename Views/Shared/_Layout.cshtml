@@ -59,7 +59,7 @@
             <div class="container">
                 <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="bi bi-cpu-fill me-2 text-primary"></i>
-                    <span>LeetCode<span class="text-primary">Clone</span></span>
+                    <span>Code<span class="text-primary">master</span></span>
                 </a>
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,7 @@
                                     <div class="position-relative">
                                         @{
                                             var user = await UserManager.GetUserAsync(User);
-                                            var profilePic = user?.ProfilePicture ?? "/images/default-profile.png";
+                                            var profilePic = user?.ProfilePicture ?? "/images/default-profile.jpg";
                                         }
                                         <img src="@profilePic"
                                              class="rounded-circle border border-2 border-primary" width="38" height="38" alt="Profile" style="object-fit: cover;">
@@ -140,7 +140,7 @@
             </div>
         </nav>
     </header>
-    <main role="main">
+    <main role="main" >
         @RenderBody()
     </main>
 

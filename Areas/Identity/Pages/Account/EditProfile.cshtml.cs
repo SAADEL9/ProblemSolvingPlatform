@@ -48,7 +48,7 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
 
         // Bind property for uploaded profile image
         [BindProperty]
-        public IFormFile? ProfileImage { get; set; }
+        public IFormFile? ProfileImageFile { get; set; }
 
         public class InputModel
         {
@@ -85,6 +85,7 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // Global try-catch to prevent crash
             try
             {
                 var user = await _userManager.GetUserAsync(User);
@@ -108,28 +109,28 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                 string? newFileFullPath = null;
 
                 // Handle profile image upload
-                if (ProfileImage != null && ProfileImage.Length > 0)
+                if (ProfileImageFile != null && ProfileImageFile.Length > 0)
                 {
                     try
                     {
-                        _logger.LogInformation("Processing profile image upload: {FileName}", ProfileImage.FileName);
+                        _logger.LogInformation("Processing profile image upload: {FileName}", ProfileImageFile.FileName);
 
                         // Validate file type
                         var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                        var ext = Path.GetExtension(ProfileImage.FileName).ToLowerInvariant();
+                        var ext = Path.GetExtension(ProfileImageFile.FileName).ToLowerInvariant();
                         if (!allowed.Contains(ext))
                         {
                             _logger.LogWarning("Invalid file extension: {Extension}", ext);
-                            ModelState.AddModelError("ProfileImage", "Invalid image format. Allowed: jpg, jpeg, png, gif.");
+                            ModelState.AddModelError("ProfileImageFile", "Invalid image format. Allowed: jpg, jpeg, png, gif.");
                             return Page();
                         }
 
                         // Limit size to 2 MB
                         const long maxSize = 2 * 1024 * 1024;
-                        if (ProfileImage.Length > maxSize)
+                        if (ProfileImageFile.Length > maxSize)
                         {
-                            _logger.LogWarning("File too large: {Size} bytes", ProfileImage.Length);
-                            ModelState.AddModelError("ProfileImage", "Image size must be 2 MB or less.");
+                            _logger.LogWarning("File too large: {Size} bytes", ProfileImageFile.Length);
+                            ModelState.AddModelError("ProfileImageFile", "Image size must be 2 MB or less.");
                             return Page();
                         }
 
@@ -141,6 +142,8 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                         }
 
                         var uploadsFolder = Path.Combine(webRoot, "uploads", "profiles");
+                        
+                        // Ensure directory exists with explicit try-catch
                         try 
                         {
                             if (!Directory.Exists(uploadsFolder))
@@ -151,8 +154,8 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to create uploads directory");
-                            ModelState.AddModelError(string.Empty, "Failed to save image. Server configuration error.");
+                            _logger.LogError(ex, "Failed to create uploads directory: {Path}", uploadsFolder);
+                            ModelState.AddModelError(string.Empty, "Server error: Could not create upload directory.");
                             return Page();
                         }
 
@@ -185,40 +188,64 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
 
                         try
                         {
-                            _logger.LogInformation("Saving new profile picture to: {Path}", fullPath);
-                            using (var stream = new FileStream(fullPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                            _logger.LogInformation("Reading uploaded file into memory for safe write: {FileName}", ProfileImageFile.FileName);
+                            // Read file into memory once
+                            byte[] fileBytes;
+                            using (var ms = new MemoryStream())
                             {
-                                await ProfileImage.CopyToAsync(stream);
-                                await stream.FlushAsync();
-                                stream.Dispose();
+                                await ProfileImageFile.CopyToAsync(ms);
+                                fileBytes = ms.ToArray();
                             }
-                            
-                            // Ensure the file was actually written
-                            if (!System.IO.File.Exists(fullPath))
+
+                            _logger.LogInformation("Saving new profile picture to disk: {Path}", fullPath);
+                            try
                             {
-                                throw new Exception("File was not created successfully");
+                                // Write bytes atomically
+                                await System.IO.File.WriteAllBytesAsync(fullPath, fileBytes);
+
+                                // Verify file exists
+                                if (!System.IO.File.Exists(fullPath))
+                                {
+                                    throw new IOException("File was not created successfully");
+                                }
+
+                                user.ProfilePicture = "/uploads/profiles/" + fileName;
+                                _logger.LogInformation("New profile picture path saved to user: {Path}", user.ProfilePicture);
                             }
-                            
-                            user.ProfilePicture = "/uploads/profiles/" + fileName;
-                            _logger.LogInformation("New profile picture path saved to user: {Path}", user.ProfilePicture);
-                        }
-                        catch (IOException ioEx)
-                        {
-                            _logger.LogError(ioEx, "IO error while writing file to disk: {Path}", fullPath);
-                            ModelState.AddModelError("ProfileImage", "Failed to save the image. The file may be in use or the disk is full.");
-                            return Page();
+                            catch (IOException ioEx)
+                            {
+                                _logger.LogWarning(ioEx, "IO error while writing file to disk: {Path} - attempting in-memory fallback", fullPath);
+
+                                // Fallback: store as data URI in the database to avoid file system dependency
+                                try
+                                {
+                                    var base64 = Convert.ToBase64String(fileBytes);
+                                    var contentType = ProfileImageFile.ContentType ?? "image/png";
+                                    user.ProfilePicture = $"data:{contentType};base64,{base64}";
+                                    _logger.LogInformation("Saved profile picture as data URI for user: {UserId}", user.Id);
+
+                                    // Ensure we don't attempt to delete/move a non-existent file later
+                                    newFileFullPath = null;
+                                }
+                                catch (Exception fallbackEx)
+                                {
+                                    _logger.LogError(fallbackEx, "Fallback in-memory save also failed");
+                                    ModelState.AddModelError("ProfileImageFile", "Failed to save the image. The file may be in use or the disk is full.");
+                                    return Page();
+                                }
+                            }
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to write file to disk: {Path}", fullPath);
-                            ModelState.AddModelError("ProfileImage", "Failed to save the image to the server: " + ex.Message);
+                            _logger.LogError(ex, "Failed to process uploaded file: {FileName}", ProfileImageFile.FileName);
+                            ModelState.AddModelError("ProfileImageFile", "Failed to save the image to the server: " + ex.Message);
                             return Page();
                         }
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Unexpected error during profile image processing");
-                        ModelState.AddModelError("ProfileImage", "An unexpected error occurred while processing the image.");
+                        ModelState.AddModelError("ProfileImageFile", "An unexpected error occurred while processing the image.");
                         return Page();
                     }
                 }
@@ -231,7 +258,16 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                     if (result.Succeeded)
                     {
                         _logger.LogInformation("User update succeeded. Refreshing sign-in.");
-                        await _signInManager.RefreshSignInAsync(user);
+                        
+                        // Wrap RefreshSignInAsync in try-catch as it's not critical for the update itself
+                        try
+                        {
+                            await _signInManager.RefreshSignInAsync(user);
+                        }
+                        catch (Exception refreshEx)
+                        {
+                            _logger.LogWarning(refreshEx, "Failed to refresh sign-in after profile update.");
+                        }
                         
                         TempData["SuccessMessage"] = "Your profile has been updated successfully!";
                         return RedirectToPage("./Profile");
@@ -260,7 +296,7 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Critical error during user update in EditProfile OnPostAsync");
-                    ModelState.AddModelError(string.Empty, "An internal error occurred while saving your profile. Please try again.");
+                    ModelState.AddModelError(string.Empty, "An internal error occurred while saving your profile.");
                     
                     // Cleanup new file if user update failed
                     if (newFileFullPath != null && System.IO.File.Exists(newFileFullPath))
@@ -275,10 +311,11 @@ namespace ProblemSolvingPlatform.Areas.Identity.Pages.Account
                     return Page();
                 }
             }
-            catch (Exception ex)
+            catch (Exception globalEx)
             {
-                _logger.LogError(ex, "Critical error in EditProfile OnPostAsync");
-                ModelState.AddModelError(string.Empty, "An internal error occurred while saving your profile.");
+                // Absolute safety net for any other unhandled exception
+                _logger.LogError(globalEx, "Unhandled exception in EditProfile OnPostAsync");
+                ModelState.AddModelError(string.Empty, "Available to save profile due to an unexpected error.");
                 return Page();
             }
         }

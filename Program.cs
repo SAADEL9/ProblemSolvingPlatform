@@ -16,12 +16,27 @@ using var loggerFactory = LoggerFactory.Create(lb =>
 });
 var globalLogger = loggerFactory.CreateLogger("Global");
 
+// Helper to write unhandled exceptions to a file for post-mortem
+void WriteUnhandledToFile(Exception? ex)
+{
+    try
+    {
+        var logsDir = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+        if (!Directory.Exists(logsDir)) Directory.CreateDirectory(logsDir);
+        var path = Path.Combine(logsDir, "unhandled.log");
+        var text = $"[{DateTime.UtcNow:O}] Unhandled: {ex?.GetType().FullName}: {ex?.Message}\n{ex?.StackTrace}\n\n";
+        File.AppendAllText(path, text);
+    }
+    catch { }
+}
+
 // Global unhandled exception handlers - log to console/file
 AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 {
     try
     {
         globalLogger.LogCritical(e.ExceptionObject as Exception, "Unhandled exception (AppDomain)");
+        WriteUnhandledToFile(e.ExceptionObject as Exception);
     }
     catch { }
 };
@@ -31,6 +46,7 @@ TaskScheduler.UnobservedTaskException += (s, e) =>
     try
     {
         globalLogger.LogError(e.Exception, "Unobserved task exception");
+        WriteUnhandledToFile(e.Exception);
     }
     catch { }
 };
@@ -164,5 +180,6 @@ try
 catch (Exception ex)
 {
     globalLogger.LogCritical(ex, "Host terminated unexpectedly");
+    WriteUnhandledToFile(ex);
     throw;
 }
