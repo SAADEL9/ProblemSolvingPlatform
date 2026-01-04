@@ -53,7 +53,7 @@ namespace ProblemSolvingPlatform.Controllers
             {
                 commentId = comment.CommentaireId,
                 userName = string.IsNullOrEmpty(user.FirstName) ? user.UserName : (user.FirstName + " " + user.LastName),
-                userProfilePic = user.ProfilePicture ?? "/images/default-profile.png",
+                userProfilePic = user.ProfilePicture ?? "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
                 date = comment.DateCreation.ToString("MMM dd, yyyy HH:mm"),
                 content = comment.Contenu
             });

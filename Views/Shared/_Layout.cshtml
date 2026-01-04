@@ -89,7 +89,7 @@
                                     <div class="position-relative">
                                         @{
                                             var user = await UserManager.GetUserAsync(User);
-                                            var profilePic = user?.ProfilePicture ?? "/images/default-profile.jpg";
+                                            var profilePic = user?.ProfilePicture ?? "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
                                         }
                                         <img src="@profilePic"
                                              class="rounded-circle border border-2 border-primary" width="38" height="38" alt="Profile" style="object-fit: cover;">

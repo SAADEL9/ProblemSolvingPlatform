@@ -115,7 +115,7 @@
                             {
                                 <div class="comment-item mb-4 pb-4 border-bottom border-secondary border-opacity-25">
                                     <div class="d-flex align-items-center mb-2">
-                                        <img src="@(comment.User?.ProfilePicture ?? "/images/default-profile.png")" class="rounded-circle me-2 border border-secondary" width="28" height="28" style="object-fit: cover;">
+                                        <img src="@(comment.User?.ProfilePicture ?? "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png")" class="rounded-circle me-2 border border-secondary" width="28" height="28" style="object-fit: cover;">
                                         <div class="flex-grow-1">
                                             <span class="text-white small fw-bold">@(comment.User?.FirstName + " " + comment.User?.LastName)</span>
                                             <span class="text-white-50 small ms-2" style="font-size: 0.7rem;">@comment.DateCreation.ToString("MMM dd, yyyy")</span>

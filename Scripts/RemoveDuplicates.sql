@@ -1,0 +1,7 @@
+WITH CTE AS (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY Title ORDER BY ProbId) AS rn
+    FROM Probleme
+)
+DELETE FROM CTE WHERE rn > 1;
+
+SELECT Count(*) FROM Probleme;
