@@ -7,7 +7,7 @@
     var isAdmin = User.IsInRole("Admin");
 }
 
-<div class="container py-5">
+<div class="container py-5" style="height:700px">
     <div class="text-center mb-5">
         <h1 class="display-4 fw-bold text-white mb-2">Global Leaderboard</h1>
         <p class="text-white-50">Top performers in the Problem Solving Platform</p>
@@ -38,31 +38,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model.OrderBy(m => m.Rang))
+                    @{
+                        int rank = 1;
+                        var orderedModel = Model.OrderByDescending(m => m.TotalPoints).ToList();
+                    }
+                    @foreach (var item in orderedModel)
                     {
                         <tr class="border-bottom border-secondary" style="transition: background-color 0.2s;">
                             <td class="ps-4">
-                                @if (item.Rang == 1)
+                                @if (rank == 1)
                                 {
                                     <div class="rank-badge rank-1"><i class="bi bi-trophy-fill"></i></div>
                                 }
-                                else if (item.Rang == 2)
+                                else if (rank == 2)
                                 {
                                     <div class="rank-badge rank-2 text-silver"><i class="bi bi-trophy-fill"></i></div>
                                 }
-                                else if (item.Rang == 3)
+                                else if (rank == 3)
                                 {
                                     <div class="rank-badge rank-3 text-bronze"><i class="bi bi-trophy-fill"></i></div>
                                 }
                                 else
                                 {
-                                    <span class="ms-2 fw-bold text-white-50">#@item.Rang</span>
+                                    <span class="ms-2 fw-bold text-white-50">#@rank</span>
                                 }
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
                                     @{
-                                        var profilePic = item.User?.ProfilePicture ?? "/images/default-profile.png";
+                                        var profilePic = item.User?.ProfilePicture ?? "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
                                     }
                                     <img src="@profilePic" class="rounded-circle me-3 border border-secondary shadow-sm" width="40" height="40" alt="Avatar" style="object-fit: cover;">
                                     <div>
@@ -96,8 +100,10 @@
                                 </td>
                             }
                         </tr>
+                        rank++;
                     }
                 </tbody>
+
             </table>
         </div>
     </div>

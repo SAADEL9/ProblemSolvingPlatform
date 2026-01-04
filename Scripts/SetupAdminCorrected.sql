@@ -1,3 +1,4 @@
+use ProblemSolvingPlatform;
 SET QUOTED_IDENTIFIER ON;
 GO
 
@@ -29,7 +30,7 @@ PRINT 'Step 3: Available users:';
 SELECT UserId, UserName, Email FROM Users ORDER BY UserId;
 
 -- Step 3: Assign Admin Role
-DECLARE @UserIdToMakeAdmin INT = 1;  -- ? CHANGE THIS TO YOUR USER ID IF NEEDED
+DECLARE @UserIdToMakeAdmin INT = 2;  -- ? CHANGE THIS TO YOUR USER ID IF NEEDED
 
 PRINT '';
 PRINT 'Step 4: Assigning Admin role...';

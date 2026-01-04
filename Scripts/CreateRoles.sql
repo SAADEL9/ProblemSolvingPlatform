@@ -2,7 +2,7 @@
 -- CREATE ADMIN AND USER ROLES IN DATABASE
 -- ===================================================
 -- Run this script first to create the roles!
-
+use ProblemSolvingPlatform;
 -- Create Admin Role
 INSERT INTO AspNetRoles (Name, NormalizedName, ConcurrencyStamp)
 VALUES ('Admin', 'ADMIN', NEWID());
